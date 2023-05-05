@@ -33,7 +33,7 @@ void init_skip_list(Skip_list* slist, int max_level){
 
     for(int i = 0; i < max_level; i++){
         h_next[i] = NULL;
-        t_next[i] = &header;
+        t_next[i] = header;
     }
 
     header->next = h_next;
