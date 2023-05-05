@@ -1,10 +1,11 @@
-#ifndef SKIP_LIST
-#define SKIP_LIST
-#include "skip_list.h"
+#ifndef SKIP_LIST_SEQ
+#define SKIP_LIST_SEQ
+#include "skip_list_seq.h"
 #endif
 
 
 
 int main(){
+    init_random();
     return 0;
 }
