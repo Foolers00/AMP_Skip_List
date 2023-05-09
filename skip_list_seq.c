@@ -13,6 +13,8 @@ void init_skip_list(Skip_list* slist, int max_level){
     Node** h_prev = NULL;
     Node** t_prev = NULL;
 
+    init_random();
+
 
     header = (Node*)malloc(sizeof(Node));
     tail = (Node*)malloc(sizeof(Node));
@@ -22,30 +24,36 @@ void init_skip_list(Skip_list* slist, int max_level){
     }
 
     header->level = max_level;
-    header->value = INT_MAX;
+    header->key = INT_MAX;
+    header->value = 0;
 
     tail->level = max_level;
     tail->value = INT_MIN;
+    header->value = 0;
 
-    h_next = (Node**)malloc(max_level*sizeof(Node*));
-    t_next = (Node**)malloc(max_level*sizeof(Node*));
-    h_prev = (Node**)malloc(max_level*sizeof(Node*));
-    t_prev = (Node**)malloc(max_level*sizeof(Node*));
+    h_next = (Node**)malloc((max_level+1)*sizeof(Node*));
+    t_next = (Node**)malloc((max_level+1)*sizeof(Node*));
+    h_prev = (Node**)malloc((max_level+1)*sizeof(Node*));
+    t_prev = (Node**)malloc((max_level+1)*sizeof(Node*));
 
     if(!h_next || !t_next || !h_prev || !t_prev){
         fprintf(stderr, "Malloc failed");
     }
 
-    for(int i = 0; i < max_level; i++){
+    for(int i = 0; i <= max_level; i++){
         h_next[i] = NULL;
         h_prev[i] = tail;
         t_next[i] = header;
-        t_next[i] = NULL;
+        t_prev[i] = NULL;
     }
+
+    header->next = h_next;
+    header->prev = h_prev;
+    tail->next = t_next;
+    tail->prev = t_prev;
 
     slist->header = header;
     slist->tail = tail;
-    slist->curr_level = 0;
     slist->max_level = max_level;
 }
 
@@ -53,6 +61,7 @@ void init_skip_list(Skip_list* slist, int max_level){
 void add_skip_list(Skip_list* slist, int key, int value){
     Node* new_node = NULL;
     Node* proto[slist->max_level+1];
+    memset(proto, -1, slist->max_level+1);
 
     new_node = find_skip_list(slist, key, proto);
 
@@ -67,10 +76,11 @@ void add_skip_list(Skip_list* slist, int key, int value){
         fprintf(stderr, "Malloc failed");
     }
     new_node->level = random_level_generator(slist->max_level);
+    new_node->key = key;
     new_node->value = value;
 
-    new_node->next = (Node**)malloc(new_node->level*sizeof(Node*));
-    new_node->prev = (Node**)malloc(new_node->level*sizeof(Node*));
+    new_node->next = (Node**)malloc((new_node->level+1)*sizeof(Node*));
+    new_node->prev = (Node**)malloc((new_node->level+1)*sizeof(Node*));
     if(!new_node->next || !new_node->prev){
         fprintf(stderr, "Malloc failed");
     }
@@ -90,11 +100,11 @@ void remove_skip_list(Skip_list* slist, int key){
 
     if(node){
         for(int i = node->level; i >= 0; i--){
-            node->prev[i] = node->next[i];
+            node->prev[i]->next[i] = node->next[i];
+            node->next[i]->prev[i] = node->prev[i];
         }
+        free_node(node);
     }
-
-    free_node(node);
 }
 
 
@@ -177,7 +187,7 @@ void print_skip_list(Skip_list* slist){
 
     fprintf(stdout, "Skip_list: ");
 
-    while(node){
+    while(node->next[0]){
         fprintf(stdout, "(%d, %d) ", node->key, node->value);
         node = node->next[0];
     }
