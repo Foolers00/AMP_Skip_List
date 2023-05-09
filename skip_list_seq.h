@@ -23,6 +23,11 @@
 #include <limits.h>
 #endif
 
+#ifndef STRING
+#define STRING
+#include <string.h>
+#endif
+
 typedef struct Node{
     struct Node** next;
     struct Node** prev;
@@ -35,7 +40,6 @@ typedef struct Node{
 typedef struct Skip_list{
     Node* header;
     Node* tail;
-    int curr_level;
     int max_level;
 }Skip_list;
 
@@ -54,6 +58,12 @@ void init_skip_list(Skip_list* slist, int max_level);
     with value
 */
 void add_skip_list(Skip_list* slist, int key, int value);
+
+/* 
+    removes the node with key if it is in the skip list
+    slist from all levels
+*/
+void remove_skip_list(Skip_list* slist, int key);
 
 /*
     finds the node with key if it is in the list otherwise 
