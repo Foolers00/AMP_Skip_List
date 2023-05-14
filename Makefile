@@ -1,16 +1,23 @@
 .PHONY: all clean
+CC = gcc -g -Wall
 
-all: main.o skip_list_seq.o
-	gcc -o prog main.o skip_list_seq.o
+
+all: main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o
+	$(CC) -o prog main.o skip_list_seq.o
 
 
 main.o: main.c skip_list_seq.h 
-	gcc -c main.c
+	$(CC) -c main.c
 
 
 skip_list_seq.o: skip_list_seq.c skip_list_seq.h
-	gcc -c skip_list_seq.c
+	$(CC) -c skip_list_seq.c
 
+skip_list_lock.o: skip_list_lock.c skip_list_lock.h
+	$(CC) -c skip_list_lock.c
+
+skip_list_lockf.o: skip_list_lockf.c skip_list_lockf.h
+	$(CC) -c skip_list_lockf.c
 
 clean:
-	rm -rf prog main.o skip_list_seq.o
+	rm -rf prog main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o

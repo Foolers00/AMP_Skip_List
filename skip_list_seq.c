@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////////////////
+/* SKIP LIST SEQUENTIAL */
+/////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef SKIP_LIST_SEQ
 #define SKIP_LIST_SEQ
 #include "skip_list_seq.h"
@@ -5,19 +9,19 @@
 
 
 
-void init_skip_list(Skip_list* slist, int max_level){
-    Node* header = NULL;
-    Node* tail = NULL;
-    Node** h_next = NULL;
-    Node** t_next = NULL;
-    Node** h_prev = NULL;
-    Node** t_prev = NULL;
+void init_skip_list_seq(Skip_list_seq* slist, int max_level){
+    Node_seq* header = NULL;
+    Node_seq* tail = NULL;
+    Node_seq** h_next = NULL;
+    Node_seq** t_next = NULL;
+    Node_seq** h_prev = NULL;
+    Node_seq** t_prev = NULL;
 
-    init_random();
+    init_random_seq();
 
 
-    header = (Node*)malloc(sizeof(Node));
-    tail = (Node*)malloc(sizeof(Node));
+    header = (Node_seq*)malloc(sizeof(Node_seq));
+    tail = (Node_seq*)malloc(sizeof(Node_seq));
 
     if(!header || !tail){
         fprintf(stderr, "Malloc failed");
@@ -31,10 +35,10 @@ void init_skip_list(Skip_list* slist, int max_level){
     tail->value = INT_MIN;
     header->value = 0;
 
-    h_next = (Node**)malloc((max_level+1)*sizeof(Node*));
-    t_next = (Node**)malloc((max_level+1)*sizeof(Node*));
-    h_prev = (Node**)malloc((max_level+1)*sizeof(Node*));
-    t_prev = (Node**)malloc((max_level+1)*sizeof(Node*));
+    h_next = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
+    t_next = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
+    h_prev = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
+    t_prev = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
 
     if(!h_next || !t_next || !h_prev || !t_prev){
         fprintf(stderr, "Malloc failed");
@@ -58,61 +62,76 @@ void init_skip_list(Skip_list* slist, int max_level){
 }
 
 
-void add_skip_list(Skip_list* slist, int key, int value){
-    Node* new_node = NULL;
-    Node* proto[slist->max_level+1];
+bool add_skip_list_seq(Skip_list_seq* slist, int key, int value){
+    Node_seq* new_node = NULL;
+    Node_seq* proto[slist->max_level+1];
     memset(proto, -1, slist->max_level+1);
 
-    new_node = find_skip_list(slist, key, proto);
+    new_node = find_skip_list_seq(slist, key, proto);
 
     if(new_node){
         new_node->value = value;
-        return;
+        return true;
     }
 
 
-    new_node = (Node*)malloc(sizeof(Node));
+    new_node = (Node_seq*)malloc(sizeof(Node_seq));
     if(!new_node){
         fprintf(stderr, "Malloc failed");
+        return false;
     }
-    new_node->level = random_level_generator(slist->max_level);
+    new_node->level = random_level_generator_seq(slist->max_level);
     new_node->key = key;
     new_node->value = value;
 
-    new_node->next = (Node**)malloc((new_node->level+1)*sizeof(Node*));
-    new_node->prev = (Node**)malloc((new_node->level+1)*sizeof(Node*));
+    new_node->next = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
+    new_node->prev = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
     if(!new_node->next || !new_node->prev){
         fprintf(stderr, "Malloc failed");
+        return false;
     }
 
     for(int i = new_node->level; i >= 0; i--){
         new_node->prev[i] = proto[i];
         new_node->next[i] = proto[i]->next[i];
-        proto[i]->next[i] = new_node;
+        proto[i]->next[i]->prev[i] = new_node;
+        proto[i]->next[i]= new_node;
     }
-
+    
+    return true;
 
 }
 
 
-void remove_skip_list(Skip_list* slist, int key){
-    Node* node = find_skip_list(slist, key, NULL);
+bool remove_skip_list_seq(Skip_list_seq* slist, int key){
+    Node_seq* node = find_skip_list_seq(slist, key, NULL);
 
     if(node){
         for(int i = node->level; i >= 0; i--){
             node->prev[i]->next[i] = node->next[i];
             node->next[i]->prev[i] = node->prev[i];
         }
-        free_node(node);
+        free_node_seq(node);
+        return true;
     }
+    return false;
 }
 
 
-Node* find_skip_list(Skip_list* slist, int key, Node** proto){
-    Node* node = NULL;
+bool contains_skip_list_seq(Skip_list_seq* slist, int key){
+    
+    if(find_skip_list_seq(slist, key, NULL)){
+        return true;
+    }
+    return false;
+}
+
+
+Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto){
+    Node_seq* node = NULL;
     
     for(int i = slist->max_level; i >= 0; i--){
-        node = find_list(slist, i, key);
+        node = find_list_seq(slist, i, key);
         if(node->key == key){
             return node;
         }
@@ -124,11 +143,11 @@ Node* find_skip_list(Skip_list* slist, int key, Node** proto){
     return NULL;
 }
 
-Node* find_list(Skip_list* slist, int level, int key){
-    Node* t_node = slist->tail;
-    Node* h_node = slist->header;
+Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key){
+    Node_seq* t_node = slist->tail;
+    Node_seq* h_node = slist->header;
 
-    while(t_node->next[level] != h_node){
+    while(t_node != h_node && t_node->next[level] != h_node){
         if(t_node->next[level]->key == key){
             return t_node->next[level];
         }
@@ -148,12 +167,12 @@ Node* find_list(Skip_list* slist, int level, int key){
 }
 
 
-void init_random(){
+void init_random_seq(){
     time_t t;
     srand((unsigned) time(&t));
 } 
 
-int random_level_generator(int max_level){
+int random_level_generator_seq(int max_level){
     int level = 0;
     while(rand() % 2 == 0 && level > max_level){
         level++;
@@ -162,7 +181,7 @@ int random_level_generator(int max_level){
 }
 
 
-void free_node(Node* node){
+void free_node_seq(Node_seq* node){
     if(node->next){
         free(node->next);
     }
@@ -171,17 +190,17 @@ void free_node(Node* node){
     }
 }
 
-void free_skip_list(Skip_list* slist){
+void free_skip_list_seq(Skip_list_seq* slist){
     if(slist->tail){
-        free_node(slist->tail);
+        free_node_seq(slist->tail);
     }
     if(slist->header){
-        free_node(slist->header);
+        free_node_seq(slist->header);
     }
 }
 
-void print_skip_list(Skip_list* slist){
-    Node* node = NULL;
+void print_skip_list_seq(Skip_list_seq* slist){
+    Node_seq* node = NULL;
 
     node = slist->tail->next[0];
 
