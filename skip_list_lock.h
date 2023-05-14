@@ -40,4 +40,4 @@ Window find_skip_list_lock(int key);
 bool validate_skip_list_lock(Window w);
 
 // Melvin
-bool contains(int key);
+bool contains_skip_list_lock(int key);
