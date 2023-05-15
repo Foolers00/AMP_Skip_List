@@ -14,7 +14,7 @@ skip_list_seq.o: skip_list_seq.c skip_list_seq.h
 	$(CC) -c skip_list_seq.c
 
 skip_list_lock.o: skip_list_lock.c skip_list_lock.h
-	$(CC) -c skip_list_lock.c
+	$(CC) -fopenmp -c skip_list_lock.c
 
 skip_list_lockf.o: skip_list_lockf.c skip_list_lockf.h
 	$(CC) -c skip_list_lockf.c
