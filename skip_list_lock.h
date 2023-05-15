@@ -2,6 +2,10 @@
 /* SKIP LIST LOCK */
 /////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef OMP
+#define OMP
+#include <omp.h>
+#endif
 
 
 typedef struct Node_lock{
@@ -10,7 +14,9 @@ typedef struct Node_lock{
     int key;
     int value;
     int level;
+    omp_nest_lock_t lock;
     bool marked;
+    bool fullylinked;
 }Node_lock;
 
 
