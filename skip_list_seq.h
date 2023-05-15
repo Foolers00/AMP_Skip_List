@@ -41,6 +41,11 @@ typedef struct Node_seq{
     int level;
 }Node_seq;
 
+typedef struct Window_seq{
+    Node_seq* pred;
+    Node_seq* curr;
+}Window_seq;
+
 
 typedef struct Skip_list_seq{
     Node_seq* header;
@@ -85,9 +90,10 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto);
 
 /* 
     finds node within a specific level with key, if not found 
-    it returns the node before it would insert the node with key 
+    it returns the node before it would insert the node with key
+    a w double must be also given over to increase the search time,
 */
-Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key);
+Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key, Window_seq* w);
 
 /* 
     must be called before using function random_level_generator,
@@ -110,6 +116,12 @@ void free_node_seq(Node_seq* node);
     frees up memory for skip list
 */
 void free_skip_list_seq(Skip_list_seq* slist);
+
+
+/*
+    frees up memory for window
+*/
+void free_window_seq(Window_seq* w);
 
 /*
     prints the skip list slist in the format (key, value)

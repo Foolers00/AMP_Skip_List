@@ -129,41 +129,48 @@ bool contains_skip_list_seq(Skip_list_seq* slist, int key){
 
 Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto){
     Node_seq* node = NULL;
+    Window_seq* w = (Window_seq*)malloc(sizeof(Window_seq));
+    if(!w){
+        fprintf(stderr, "Malloc failed");
+        return NULL;
+    }
+    w->pred = slist->tail;
+    w->curr = slist->header;
     
     for(int i = slist->max_level; i >= 0; i--){
-        node = find_list_seq(slist, i, key);
+        node = find_list_seq(slist, i, key, w);
         if(node->key == key){
+            free_window_seq(w);
             return node;
         }
         if(proto){
             proto[i] = node;
         }
     }
+    free_window_seq(w);
 
     return NULL;
 }
 
-Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key){
-    Node_seq* t_node = slist->tail;
-    Node_seq* h_node = slist->header;
+Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key, Window_seq* w){
 
-    while(t_node != h_node && t_node->next[level] != h_node){
-        if(t_node->next[level]->key == key){
-            return t_node->next[level];
+    while(w->pred != w->curr && w->pred->next[level] != w->curr){
+        if(w->pred->next[level]->key == key){
+            return w->pred->next[level];
         }
-        else if(t_node->next[level]->key < key){
-            t_node = t_node->next[level];
+        else if(w->pred->next[level]->key < key){
+            w->pred = w->pred->next[level];
         }
 
-        if(h_node->prev[level]->key == key){
-            return h_node->prev[level];
+        if(w->curr->prev[level]->key == key){
+            return w->curr->prev[level];
         }
-        else if(h_node->prev[level]->key > key){
-            h_node = h_node->prev[level];
+        else if(w->curr->prev[level]->key > key){
+            w->curr = w->curr->prev[level];
         }
     }
 
-    return t_node;
+    return w->pred;
 }
 
 
@@ -197,6 +204,11 @@ void free_skip_list_seq(Skip_list_seq* slist){
     if(slist->header){
         free_node_seq(slist->header);
     }
+}
+
+
+void free_window_seq(Window_seq* w){
+    free(w);
 }
 
 void print_skip_list_seq(Skip_list_seq* slist){

@@ -21,10 +21,10 @@ typedef struct Skip_list_lock{
 }Skip_list_lock;
 
 
-typedef struct Window{
+typedef struct Window_lock{
     Node_lock* pred;
     Node_lock* curr;
-}Window;
+}Window_lock;
 
 
 // Melvin
@@ -34,10 +34,10 @@ bool add_skip_list_lock(int key, int value);
 bool remove_skip_list_lock(int key);
 
 // Thomas
-Window find_skip_list_lock(int key);
+Window_lock find_skip_list_lock(int key);
 
 // Thomas
-bool validate_skip_list_lock(Window w);
+bool validate_skip_list_lock(Window_lock w);
 
 // Melvin
 bool contains_skip_list_lock(int key);
