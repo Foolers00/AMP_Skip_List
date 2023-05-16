@@ -42,10 +42,10 @@
 typedef struct Node_l{
     struct Node_l** next;
     struct Node_l** prev;
+    omp_nest_lock_t lock;
     int key;
     int value;
     unsigned int level;
-    omp_nest_lock_t lock;
     bool marked;
     bool fullylinked;
 }Node_l;
