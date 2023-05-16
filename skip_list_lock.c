@@ -20,7 +20,7 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
     {   
 
 
-        #pragma omp master 
+        #pragma omp single 
         {
             init_random_l(slist);
 
@@ -51,7 +51,7 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
                 return false;
             }
         }
-        #pragma omp barrier
+        
 
         for(int i = 0; i <= max_level; i++){
             h_next[i] = NULL;
