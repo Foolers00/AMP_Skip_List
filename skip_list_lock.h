@@ -2,48 +2,99 @@
 /* SKIP LIST LOCK */
 /////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef STDLIB
+#define STDLIB
+#include <stdlib.h>
+#endif
+
+#ifndef STDIO
+#define STDIO
+#include <stdio.h>
+#endif
+
+#ifndef TIME
+#define TIME
+#include <time.h>
+#endif
+
+#ifndef BOOL
+#define BOOL
+#include <stdbool.h>
+#endif
+
+#ifndef LIMITS
+#define LIMITS
+#include <limits.h>
+#endif
+
+#ifndef STRING
+#define STRING
+#include <string.h>
+#endif
+
 #ifndef OMP
 #define OMP
 #include <omp.h>
 #endif
 
+#define FRACTION 1/2 
 
-typedef struct Node_lock{
-    struct Node_lock** next;
-    struct Node_lock** prev;
+typedef struct Node_l{
+    struct Node_l** next;
+    struct Node_l** prev;
     int key;
     int value;
-    int level;
+    unsigned int level;
     omp_nest_lock_t lock;
     bool marked;
     bool fullylinked;
-}Node_lock;
+}Node_l;
 
 
-typedef struct Skip_list_lock{
-    Node_lock* header;
-    Node_lock* tail;
-    int max_level;
-}Skip_list_lock;
+typedef struct Skip_list_l{
+    Node_l* header;
+    Node_l* tail;
+    unsigned int max_level;
+    unsigned int* random_seeds;
+}Skip_list_l;
 
 
-typedef struct Window_lock{
-    Node_lock* pred;
-    Node_lock* curr;
-}Window_lock;
+typedef struct Window_l{
+    Node_l* pred;
+    Node_l* curr;
+}Window_l;
 
+
+/*
+    Initializes skip list slist with tail and header,
+    where both have an array of lists next and prev 
+    that are max_level long and point to each other    
+*/
+bool init_skip_list_l(Skip_list_l* slist, int max_level);
+
+/* 
+    must be called before using function random_level_generator,
+    sets the seeds for all threads, is called in init_skip_list_l
+*/
+bool init_random_l(Skip_list_l* slist);
+
+/* 
+    returns random level count, 
+    probability: level 0 = 100%, level 1 = 50%, level 2 = 25% ...
+*/
+unsigned int random_level_generator_l(Skip_list_l* slist);
 
 // Melvin
-bool add_skip_list_lock(int key, int value);
+bool add_skip_list_l(int key, int value);
 
 // Christopher
-bool remove_skip_list_lock(int key);
+bool remove_skip_list_l(int key);
 
 // Thomas
-Window_lock find_skip_list_lock(int key);
+Window_l find_skip_list_l(int key);
 
 // Thomas
-bool validate_skip_list_lock(Window_lock w);
+bool validate_skip_list_l(Window_l w);
 
 // Melvin
-bool contains_skip_list_lock(int key);
+bool contains_skip_list_l(int key);
