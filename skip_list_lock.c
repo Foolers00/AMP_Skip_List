@@ -19,10 +19,11 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
     #pragma omp parallel default(shared)
     {   
 
-        init_random_l(slist);
 
         #pragma omp master 
         {
+            init_random_l(slist);
+
             header = (Node_l*)malloc(sizeof(Node_l));
             tail = (Node_l*)malloc(sizeof(Node_l));
 
@@ -82,18 +83,21 @@ bool init_random_l(Skip_list_l* slist){
     time_t t;
     int id = omp_get_thread_num();
     
-    
-    #pragma omp single
+    #pragma omp paralell private(t, id)
     {
-        slist->random_seeds = 
-        (unsigned int*)malloc(sizeof(unsigned int)*omp_get_num_threads());
-        if(!slist->random_seeds){
-            fprintf(stderr, "Malloc failed");
-            return false;
+        #pragma omp single
+        {
+            slist->random_seeds = 
+            (unsigned int*)malloc(sizeof(unsigned int)*omp_get_num_threads());
+            if(!slist->random_seeds){
+                fprintf(stderr, "Malloc failed");
+                return false;
+            }
         }
+    
+        slist->random_seeds[id] = (unsigned) time(&t) + id;
     }
     
-    slist->random_seeds[id] = (unsigned) time(&t) + id;
     return true;
     
 
