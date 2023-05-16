@@ -85,16 +85,16 @@ bool init_random_l(Skip_list_l* slist);
 unsigned int random_level_generator_l(Skip_list_l* slist);
 
 // Melvin
-bool add_skip_list_l(int key, int value);
+bool add_skip_list_l(Skip_list_seq* slist, int key, int value);
 
 // Christopher
-bool remove_skip_list_l(int key);
+bool remove_skip_list_l(Skip_list_seq* slist, int key);
 
 // Thomas
-Window_l find_skip_list_l(int key);
+Window_l find_skip_list_l(Skip_list_seq* slist, int key);
 
 // Thomas
-bool validate_skip_list_l(Window_l w);
+bool validate_skip_list_l(Skip_list_seq* slist, Window_l w);
 
 // Melvin
-bool contains_skip_list_l(int key);
+bool contains_skip_list_l(Skip_list_seq* slist, int key);
