@@ -119,3 +119,8 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
     return level;
 
 }
+
+
+bool add_skip_list_seq(Skip_list_l* slist, int key, int value){
+    
+}
