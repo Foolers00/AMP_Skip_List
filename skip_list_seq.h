@@ -37,8 +37,8 @@
 #define FRACTION 1/2 
 
 typedef struct Node_seq{
-    struct Node_seq** next;
-    struct Node_seq** prev;
+    struct Node_seq** nexts;
+    struct Node_seq** prevs;
     int key;
     int value;
     unsigned int level;
@@ -64,6 +64,13 @@ typedef struct Skip_list_seq{
     that are max_level long and point to each other 
 */
 bool init_skip_list_seq(Skip_list_seq* slist, unsigned int max_level);
+
+
+/* 
+    Initializes node with key, value and level and allocates memory for
+    the node itselfs and the prevs and nexts array
+*/
+bool init_node_seq(Node_seq** node, int key, int value, unsigned int level);
 
 /* 
     adds the value to the skip list slist with the key,

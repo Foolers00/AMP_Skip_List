@@ -12,57 +12,53 @@
 bool init_skip_list_seq(Skip_list_seq* slist, unsigned int max_level){
     Node_seq* header = NULL;
     Node_seq* tail = NULL;
-    Node_seq** h_next = NULL;
-    Node_seq** t_next = NULL;
-    Node_seq** h_prev = NULL;
-    Node_seq** t_prev = NULL;
 
     init_random_seq();
 
+    if(!init_node_seq(&header, INT_MAX, 0, 
+    max_level)){ return false; }
 
-    header = (Node_seq*)malloc(sizeof(Node_seq));
-    tail = (Node_seq*)malloc(sizeof(Node_seq));
-
-    if(!header || !tail){
-        fprintf(stderr, "Malloc failed");
-        return false;
-    }
-
-    header->level = max_level;
-    header->key = INT_MAX;
-    header->value = 0;
-
-    tail->level = max_level;
-    tail->value = INT_MIN;
-    header->value = 0;
-
-    h_next = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
-    t_next = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
-    h_prev = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
-    t_prev = (Node_seq**)malloc((max_level+1)*sizeof(Node_seq*));
-
-    if(!h_next || !t_next || !h_prev || !t_prev){
-        fprintf(stderr, "Malloc failed");
-        return false;
-    }
+    if(!init_node_seq(&tail, INT_MIN, 0, 
+    max_level)){ return false; }
 
     for(int i = 0; i <= max_level; i++){
-        h_next[i] = NULL;
-        h_prev[i] = tail;
-        t_next[i] = header;
-        t_prev[i] = NULL;
+        header->nexts[i] = NULL;
+        header->prevs[i] = tail;
+        tail->nexts[i] = header;
+        tail->prevs[i] = NULL;
     }
-
-    header->next = h_next;
-    header->prev = h_prev;
-    tail->next = t_next;
-    tail->prev = t_prev;
 
     slist->header = header;
     slist->tail = tail;
     slist->max_level = max_level;
 
     return true;
+}
+
+
+bool init_node_seq(Node_seq** node, int key, int value, unsigned int level){
+    
+    *node = (Node_seq*)malloc(sizeof(Node_seq));
+
+    if(!*node){
+        fprintf(stderr, "Malloc failed");
+        return false;
+    }
+
+    (*node)->level = level;
+    (*node)->key = INT_MAX;
+    (*node)->value = 0;
+
+    (*node)->prevs = (Node_seq**)malloc((level+1)*sizeof(Node_seq*));
+    (*node)->nexts = (Node_seq**)malloc((level+1)*sizeof(Node_seq*));
+
+    if(!(*node)->prevs || !(*node)->nexts){
+        fprintf(stderr, "Malloc failed");
+        return false;
+    }
+    
+    return true;
+
 }
 
 
@@ -88,18 +84,18 @@ bool add_skip_list_seq(Skip_list_seq* slist, int key, int value){
     new_node->key = key;
     new_node->value = value;
 
-    new_node->next = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
-    new_node->prev = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
-    if(!new_node->next || !new_node->prev){
+    new_node->nexts = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
+    new_node->prevs = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
+    if(!new_node->nexts || !new_node->prevs){
         fprintf(stderr, "Malloc failed");
         return false;
     }
 
     for(int i = new_node->level; i >= 0; i--){
-        new_node->prev[i] = proto[i];
-        new_node->next[i] = proto[i]->next[i];
-        proto[i]->next[i]->prev[i] = new_node;
-        proto[i]->next[i]= new_node;
+        new_node->prevs[i] = proto[i];
+        new_node->nexts[i] = proto[i]->nexts[i];
+        proto[i]->nexts[i]->prevs[i] = new_node;
+        proto[i]->nexts[i]= new_node;
     }
     
     return true;
@@ -112,8 +108,8 @@ bool remove_skip_list_seq(Skip_list_seq* slist, int key){
 
     if(node){
         for(int i = node->level; i >= 0; i--){
-            node->prev[i]->next[i] = node->next[i];
-            node->next[i]->prev[i] = node->prev[i];
+            node->prevs[i]->nexts[i] = node->nexts[i];
+            node->nexts[i]->prevs[i] = node->prevs[i];
         }
         free_node_seq(node);
         return true;
@@ -158,19 +154,19 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto){
 
 Node_seq* find_list_seq(Skip_list_seq* slist, unsigned int level, int key, Window_seq* w){
 
-    while(w->pred != w->curr && w->pred->next[level] != w->curr){
-        if(w->pred->next[level]->key == key){
-            return w->pred->next[level];
+    while(w->pred != w->curr && w->pred->nexts[level] != w->curr){
+        if(w->pred->nexts[level]->key == key){
+            return w->pred->nexts[level];
         }
-        else if(w->pred->next[level]->key < key){
-            w->pred = w->pred->next[level];
+        else if(w->pred->nexts[level]->key < key){
+            w->pred = w->pred->nexts[level];
         }
 
-        if(w->curr->prev[level]->key == key){
-            return w->curr->prev[level];
+        if(w->curr->prevs[level]->key == key){
+            return w->curr->prevs[level];
         }
-        else if(w->curr->prev[level]->key > key){
-            w->curr = w->curr->prev[level];
+        else if(w->curr->prevs[level]->key > key){
+            w->curr = w->curr->prevs[level];
         }
     }
 
@@ -194,11 +190,11 @@ int random_level_generator_seq(unsigned int max_level){
 
 
 void free_node_seq(Node_seq* node){
-    if(node->next){
-        free(node->next);
+    if(node->nexts){
+        free(node->nexts);
     }
-    if(node->prev){
-        free(node->prev);
+    if(node->prevs){
+        free(node->prevs);
     }
 }
 
@@ -219,13 +215,13 @@ void free_window_seq(Window_seq* w){
 void print_skip_list_seq(Skip_list_seq* slist){
     Node_seq* node = NULL;
 
-    node = slist->tail->next[0];
+    node = slist->tail->nexts[0];
 
     fprintf(stdout, "Skip_list: ");
 
-    while(node->next[0]){
+    while(node->nexts[0]){
         fprintf(stdout, "(%d, %d) ", node->key, node->value);
-        node = node->next[0];
+        node = node->nexts[0];
     }
     fprintf(stdout, "\n");
 }
