@@ -111,11 +111,11 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
 }
 
 
-bool init_prev_next_l(Node_l*** prev, Node_l*** next, unsigned int level){
-    *prev = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
-    *next = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
+bool init_prevs_nexts_l(Node_l*** prevs, Node_l*** nexts, unsigned int level){
+    *prevs = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
+    *nexts = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
 
-    if(!*prev || !*next){
+    if(!*prevs || !*nexts){
         fprintf(stderr, "Malloc failed");
         return false;
     }
@@ -124,18 +124,19 @@ bool init_prev_next_l(Node_l*** prev, Node_l*** next, unsigned int level){
 }
 
 
-bool add_skip_list_seq(Skip_list_l* slist, int key, int value){
+bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
     Node_l** prevs;
     Node_l** nexts;
     Node_l* prev;
     Node_l* next;
+    Node_l* new_node;
     Window_l w;
     int highlock = -1;
     bool valid = false;
     int level = random_level_generator_l(slist);
 
-    init_prev_next_l(&prevs, &nexts, slist->max_level);
+    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
 
     while(true){
 
@@ -158,26 +159,125 @@ bool add_skip_list_seq(Skip_list_l* slist, int key, int value){
             valid = validate_skip_list_l(w);
         }
 
-        if(!valid) continue;
+        if(!valid){
+            unlock_prevs_l(prevs, highlock);
+            continue;
+        }
 
+        init_node_l(&new_node, key, value, level);
 
+        for(int l = 0; l<=level; l++){
+            new_node->nexts[l] = nexts[l];
+            prevs[l]->nexts[l] = new_node;
+        }
+        new_node->fullylinked = true;
+
+        unlock_prevs_l(prevs, level);
+
+        break;
     
     }
 
+    return true;
 
 }
 
 
 bool contains_skip_list_l(Skip_list_l* slist, int key){
 
-    Node_l** prev;
-    Node_l** next;
+    Node_l** prevs;
+    Node_l** nexts;
 
-    init_prev_next_l(&prev, &next, slist->max_level);
+    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
 
-    int foundlevel = find_skip_list_l(slist, key, prev, next);
+    int foundlevel = find_skip_list_l(slist, key, prevs, nexts);
 
-    return(foundlevel>=0 && next[foundlevel]->fullylinked &&
-    !next[foundlevel]->marked);
+    return(foundlevel>=0 && nexts[foundlevel]->fullylinked &&
+    !nexts[foundlevel]->marked);
+
+}
+
+
+void unlock_prevs_l(Node_l** prevs, unsigned int level){
+    
+    for(int l = 0; l<=level; l++){
+        omp_unset_nest_lock(&prevs[l]->lock);
+    }
+
+}
+
+
+void free_node_l(Node_l* node){
+
+    if(node->nexts){
+        free(node->nexts);
+    }
+    if(node->prevs){
+        free(node->prevs);
+    }
+    free(node);
+
+}
+
+
+void free_skip_list_l(Skip_list_l* slist){
+    
+    Node_l* node = slist->tail;
+    Node_l* node_next = slist->tail->nexts[0];
+
+    while(node && node_next){
+        free_node_l(node);
+        node = node_next;
+        node_next = node_next->nexts[0];
+    }
+    
+    free_node_l(node);
+}
+
+
+void free_window_l(Window_l* w){
+    free(w);
+}
+
+
+void print_skip_list_l(Skip_list_l* slist){
+
+    Node_l* node = NULL;
+
+    node = slist->tail->nexts[0];
+
+    fprintf(stdout, "Skip_list: ");
+
+    while(node->nexts[0]){
+        fprintf(stdout, "(%d, %d) ", node->key, node->value);
+        node = node->nexts[0];
+    }
+    fprintf(stdout, "\n");
+
+}
+
+
+void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
+
+    Node_seq* node_seq;
+    Node_l* node_l;
+
+    node_seq = slist_seq->tail->nexts[0];
+    node_l = slist_l->tail->nexts[0];
+
+    while(node_seq->nexts[0] && node_l->nexts[0]){
+        if(node_seq->key != node_l->key){
+            fprintf(stdout, "Comparison Failed: %d not same as %d\n",
+            node_seq->key, node_l->key);
+            return;
+        }
+    }
+
+    if(node_seq->nexts[0] || node_l->nexts[0]){
+        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
+        return;
+    }
+
+    fprintf(stdout, "Comparison Succeded\n");
 
 }

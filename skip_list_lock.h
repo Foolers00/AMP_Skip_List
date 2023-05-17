@@ -37,6 +37,11 @@
 #include <omp.h>
 #endif
 
+#ifndef SKIP_LIST_SEQ
+#define SKIP_LIST_SEQ
+#include "skip_list_seq.h"
+#endif
+
 #define FRACTION 1/2 
 
 typedef struct Node_l{
@@ -94,7 +99,12 @@ unsigned int random_level_generator_l(Skip_list_l* slist);
     initializes prev and next array by using malloc and making an array that
     is level size big with Node_l* entries
 */
-bool init_prev_next_l(Node_l*** prevs, Node_l*** nexts, unsigned int level);
+bool init_prevs_nexts_l(Node_l*** prevs, Node_l*** nexts, unsigned int level);
+
+/*
+    Unlocks all the locks from prevs[0] upto prevs[level]
+*/
+void unlock_prevs_l(Node_l** prevs, unsigned int level);
 
 // Melvin
 bool add_skip_list_l(Skip_list_l* slist, int key, int value);
@@ -108,5 +118,35 @@ int find_skip_list_l(Skip_list_l* slist, int key, Node_l** prevs, Node_l** nexts
 // Thomas
 bool validate_skip_list_l(Window_l w);
 
-// Melvin
+/*
+    returns true if the key is in the skip list slist, otherwise false
+*/
 bool contains_skip_list_l(Skip_list_l* slist, int key);
+
+
+/*
+    frees up memory for node
+*/
+void free_node_l(Node_l* node);
+
+/*
+    frees up memory for skip list
+*/
+void free_skip_list_l(Skip_list_l* slist);
+
+
+/*
+    frees up memory for window
+*/
+void free_window_l(Window_l* w);
+
+/*
+    prints the skip list slist in the format (key, value)
+*/
+void print_skip_list_l(Skip_list_l* slist);
+
+/*
+    compares keys from slist_seq to slist_l, if not same error message
+    is printed out otherwise success message is printed out
+*/
+void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l);

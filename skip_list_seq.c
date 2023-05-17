@@ -152,6 +152,7 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto){
     return NULL;
 }
 
+
 Node_seq* find_list_seq(Skip_list_seq* slist, unsigned int level, int key, Window_seq* w){
 
     while(w->pred != w->curr && w->pred->nexts[level] != w->curr){
@@ -179,6 +180,7 @@ void init_random_seq(){
     srand((unsigned) time(&t));
 } 
 
+
 int random_level_generator_seq(unsigned int max_level){
     unsigned int level = 0;
     double random_number = (double)rand()/(double)RAND_MAX;
@@ -196,15 +198,23 @@ void free_node_seq(Node_seq* node){
     if(node->prevs){
         free(node->prevs);
     }
+    free(node);
 }
 
+
 void free_skip_list_seq(Skip_list_seq* slist){
-    if(slist->tail){
-        free_node_seq(slist->tail);
+
+    Node_seq* node = slist->tail;
+    Node_seq* node_next = slist->tail->nexts[0];
+
+    while(node && node_next){
+        free_node_seq(node);
+        node = node_next;
+        node_next = node_next->nexts[0];
     }
-    if(slist->header){
-        free_node_seq(slist->header);
-    }
+    
+    free_node_seq(node);
+    
 }
 
 
@@ -212,7 +222,9 @@ void free_window_seq(Window_seq* w){
     free(w);
 }
 
+
 void print_skip_list_seq(Skip_list_seq* slist){
+
     Node_seq* node = NULL;
 
     node = slist->tail->nexts[0];
@@ -224,4 +236,5 @@ void print_skip_list_seq(Skip_list_seq* slist){
         node = node->nexts[0];
     }
     fprintf(stdout, "\n");
+
 }
