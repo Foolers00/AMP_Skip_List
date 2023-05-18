@@ -34,7 +34,7 @@
 #endif
 
 
-#define FRACTION 1/2 
+#define FRACTION (1.0/2.0)
 
 typedef struct Node_seq{
     struct Node_seq** nexts;

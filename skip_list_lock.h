@@ -42,7 +42,7 @@
 #include "skip_list_seq.h"
 #endif
 
-#define FRACTION 1/2 
+#define FRACTION (1.0/2.0)
 
 typedef struct Node_l{
     struct Node_l** nexts;
