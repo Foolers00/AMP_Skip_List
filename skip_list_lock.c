@@ -11,17 +11,17 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
 
     Node_l* header = NULL;
     Node_l* tail = NULL;
-    
+
     init_random_l(slist);
 
-    if(!init_node_l(&header, INT_MAX, 0, 
+    if(!init_node_l(&header, INT_MAX, 0,
     max_level)){ return false; }
 
-    if(!init_node_l(&tail, INT_MIN, 0, 
+    if(!init_node_l(&tail, INT_MIN, 0,
     max_level)){ return false; }
-    
+
     #pragma omp parallel default(shared)
-    {   
+    {
         for(int i = 0; i <= max_level; i++){
             header->nexts[i] = NULL;
             header->prevs[i] = tail;
@@ -30,18 +30,18 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
         }
     }
 
-    
+
     slist->header = header;
     slist->tail = tail;
     slist->max_level = max_level;
-    
+
     return true;
 
 }
 
 
 bool init_node_l(Node_l** node, int key, int value, unsigned int level){
-    
+
     *node = (Node_l*)malloc(sizeof(Node_l));
 
     if(!*node){
@@ -74,22 +74,22 @@ bool init_random_l(Skip_list_l* slist){
 
     time_t t;
     int id;
-      
-    slist->random_seeds = 
+
+    slist->random_seeds =
     (unsigned int*)malloc(sizeof(unsigned int)*omp_get_num_threads());
     if(!slist->random_seeds){
         fprintf(stderr, "Malloc failed");
         return false;
     }
-        
+
     #pragma omp parallel private(t, id)
     {
         id = omp_get_thread_num();
         slist->random_seeds[id] = (unsigned) time(&t) + id;
     }
-    
+
     return true;
-    
+
 
 }
 
@@ -99,13 +99,13 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
     unsigned int level = 0;
     unsigned int* seed = &slist->random_seeds[omp_get_thread_num()];
     unsigned int max_level = slist->max_level;
-    
+
     double random_number = (double)rand_r(seed)/(double)RAND_MAX;
-    
+
     while(random_number < FRACTION && level <= max_level){
         level++;
     }
-    
+
     return level;
 
 }
@@ -149,14 +149,14 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
             }
             continue;
         }
-        
+
         for(int l = 0; valid&&(l<=level); l++){
             prev = prevs[l];
             next = nexts[l];
             omp_set_nest_lock(&prev->lock);
             highlock = l;
             w = (Window_l) {.pred = prev, .curr = next };
-            valid = validate_skip_list_l(w);
+            valid = validate_skip_list_l(w, l);
         }
 
         if(!valid){
@@ -175,7 +175,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
         unlock_prevs_l(prevs, level);
 
         break;
-    
+
     }
 
     return true;
@@ -199,7 +199,7 @@ bool contains_skip_list_l(Skip_list_l* slist, int key){
 
 
 void unlock_prevs_l(Node_l** prevs, unsigned int level){
-    
+
     for(int l = 0; l<=level; l++){
         omp_unset_nest_lock(&prevs[l]->lock);
     }
@@ -221,7 +221,7 @@ void free_node_l(Node_l* node){
 
 
 void free_skip_list_l(Skip_list_l* slist){
-    
+
     Node_l* node = slist->tail;
     Node_l* node_next = slist->tail->nexts[0];
 
@@ -230,7 +230,7 @@ void free_skip_list_l(Skip_list_l* slist){
         node = node_next;
         node_next = node_next->nexts[0];
     }
-    
+
     free_node_l(node);
 }
 
@@ -280,4 +280,26 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
     fprintf(stdout, "Comparison Succeded\n");
 
+}
+
+int find_skip_list_l(Skip_list_l *slist, int key, Node_l **prevs, Node_l **nexts) {
+    int foundlevel = -1; //not found at any level >= 0
+    Node_l *pred = slist->header;
+    for (int l = slist->max_level; l >= 0; l--) {
+        volatile Node_l *curr = pred->nexts[l];
+        while (key > curr->key) {
+            pred = curr;
+            curr = curr->nexts[l];
+        }
+        if (foundlevel == -1 && key == curr->key) {
+            foundlevel = l; // found at level l
+            prevs[l] = pred;
+            nexts[l] = curr;
+        }
+    }
+    return foundlevel;
+}
+
+bool validate_skip_list_l(Window_l w, int l) {
+    return (!w.pred->marked) && !(w.curr->marked) && (w.pred->nexts[l] == w.curr);
 }

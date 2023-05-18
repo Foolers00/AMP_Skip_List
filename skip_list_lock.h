@@ -116,7 +116,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key);
 int find_skip_list_l(Skip_list_l* slist, int key, Node_l** prevs, Node_l** nexts);
 
 // Thomas
-bool validate_skip_list_l(Window_l w);
+bool validate_skip_list_l(Window_l w, int l);
 
 /*
     returns true if the key is in the skip list slist, otherwise false
