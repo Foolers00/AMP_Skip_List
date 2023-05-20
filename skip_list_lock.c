@@ -182,6 +182,62 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
 }
 
+bool remove_skip_list_l(Skip_list_l* slist, int key) {
+    Node_l *prev;
+    Node_l **prevs;
+    Node_l **nexts;
+    Node_l *victim;
+    int k = -1;
+    int highlock = -1;
+    bool marked = false;
+    bool valid;
+
+    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
+
+    while (true) {
+        int f = find_skip_list_l(slist, key, prevs, nexts);
+        if (f >= 0) victim = nexts[f];
+        if (marked || (f >= 0 && victim->fullylinked && victim->level==f && !victim->marked)) {
+            if (!marked) {  // only mark victim once
+                k = victim->level;
+                omp_set_nest_lock(&victim->lock);
+                if (victim->marked) {
+                    omp_unset_nest_lock(&victim->lock);
+                    return false;
+                }
+                victim->marked = true;
+                marked = true;
+            }
+
+            // now marked
+            // try to link out
+            valid = true;
+            for (int l = 0; valid && (l<=k); l++) {
+                prev = prevs[l];
+                omp_set_nest_lock(&prev->lock);
+                highlock = l;
+                valid = !prev->marked && prev->nexts[l] == victim;
+            }
+
+            if (!valid) {   // validation failed
+                unlock_prevs_l(prevs, highlock);
+                continue;
+            }
+            
+            // link out from top to bottom
+            for (int l = k; l >= 0; l--) {
+                prevs[l]->nexts[l] = victim->nexts[l];
+            }
+
+            omp_unset_nest_lock(&victim->lock);
+            return true;
+
+        } else {
+            return false;    
+        }
+    }
+}
+
 
 bool contains_skip_list_l(Skip_list_l* slist, int key){
 
