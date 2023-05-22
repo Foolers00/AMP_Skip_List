@@ -51,16 +51,16 @@ int main(){
     init_skip_list_l(&slist_l, 10);
 
     // add
-    #pragma omp for 
-    for(int i = 0; i < 5; i++){
-        add_skip_list_l(&slist_l, numbers[i], numbers[i]);
-    }
+    // #pragma omp for 
+    // for(int i = 0; i < 5; i++){
+    //     add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+    // }
 
-    print_skip_list_l(&slist_l);
+    // print_skip_list_l(&slist_l);
 
-    compare_results_l(&slist_seq, &slist_l);
+    // compare_results_l(&slist_seq, &slist_l);
 
-    free_skip_list_l(&slist_l);
+    // free_skip_list_l(&slist_l);
 
 
     return 0;

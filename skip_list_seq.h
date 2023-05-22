@@ -38,7 +38,6 @@
 
 typedef struct Node_seq{
     struct Node_seq** nexts;
-    struct Node_seq** prevs;
     int key;
     int value;
     unsigned int level;
@@ -96,7 +95,7 @@ bool contains_skip_list_seq(Skip_list_seq* slist, int key);
     array that is max_level which can be used to insert a node
     with key if it is not found
 */
-Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Node_seq** proto);
+Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]);
 
 /* 
     finds node within a specific level with key, if not found 
