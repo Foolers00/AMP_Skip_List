@@ -37,8 +37,10 @@ int main(){
     // contains
     fprintf(stdout, "4 is contained: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
     fprintf(stdout, "3 is contained: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
+    add_skip_list_seq(&slist_seq, numbers[2], numbers[2]);
+    print_skip_list_seq(&slist_seq);
+
     
-    free_skip_list_seq(&slist_seq);
 
 
 
@@ -51,16 +53,22 @@ int main(){
     init_skip_list_l(&slist_l, 10);
 
     // add
-    // #pragma omp for 
-    // for(int i = 0; i < 5; i++){
-    //     add_skip_list_l(&slist_l, numbers[i], numbers[i]);
-    // }
+    #pragma omp for 
+    for(int i = 0; i < 5; i++){
+        add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+    }
 
-    // print_skip_list_l(&slist_l);
+    print_skip_list_l(&slist_l);
 
-    // compare_results_l(&slist_seq, &slist_l);
+    compare_results_l(&slist_seq, &slist_l);
 
-    // free_skip_list_l(&slist_l);
+
+    //////////////////////////////// 
+    // FREE ////////////////////////
+    ////////////////////////////////
+
+    free_skip_list_seq(&slist_seq);
+    free_skip_list_l(&slist_l);
 
 
     return 0;

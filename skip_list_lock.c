@@ -14,10 +14,10 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
 
     init_random_l(slist);
 
-    if(!init_node_l(&header, INT_MAX, 0,
+    if(!init_node_l(&tail, INT_MAX, 0,
     max_level)){ return false; }
 
-    if(!init_node_l(&tail, INT_MIN, 0,
+    if(!init_node_l(&header, INT_MIN, 0,
     max_level)){ return false; }
 
     #pragma omp parallel default(shared)
@@ -48,8 +48,8 @@ bool init_node_l(Node_l** node, int key, int value, unsigned int level){
     }
 
     (*node)->level = level;
-    (*node)->key = INT_MAX;
-    (*node)->value = 0;
+    (*node)->key = key;
+    (*node)->value = value;
 
     (*node)->nexts = (Node_l**)malloc((level+1)*sizeof(Node_l*));
 
@@ -99,7 +99,7 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
 
     double random_number = (double)rand_r(seed)/(double)RAND_MAX;
 
-    while(random_number < FRACTION && level <= max_level){
+    while(random_number < FRACTION && level < max_level){
         level++;
     }
 
@@ -295,7 +295,7 @@ void print_skip_list_l(Skip_list_l* slist){
 
     Node_l* node = NULL;
 
-    node = slist->tail->nexts[0];
+    node = slist->header->nexts[0];
 
     fprintf(stdout, "Skip_list: ");
 
@@ -313,8 +313,8 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
     Node_seq* node_seq;
     Node_l* node_l;
 
-    node_seq = slist_seq->tail->nexts[0];
-    node_l = slist_l->tail->nexts[0];
+    node_seq = slist_seq->header->nexts[0];
+    node_l = slist_l->header->nexts[0];
 
     while(node_seq->nexts[0] && node_l->nexts[0]){
         if(node_seq->key != node_l->key){
@@ -322,6 +322,8 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
             node_seq->key, node_l->key);
             return;
         }
+        node_seq = node_seq->nexts[0];
+        node_l = node_l->nexts[0];
     }
 
     if(node_seq->nexts[0] || node_l->nexts[0]){
@@ -344,9 +346,9 @@ int find_skip_list_l(Skip_list_l *slist, int key, Node_l **prevs, Node_l **nexts
         }
         if (foundlevel == -1 && key == curr->key) {
             foundlevel = l; // found at level l
-            prevs[l] = pred;
-            nexts[l] = curr;
         }
+        prevs[l] = pred;
+        nexts[l] = curr;
     }
     return foundlevel;
 }
