@@ -23,10 +23,8 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level){
     #pragma omp parallel default(shared)
     {
         for(int i = 0; i <= max_level; i++){
-            header->nexts[i] = NULL;
-            header->prevs[i] = tail;
-            tail->nexts[i] = header;
-            tail->prevs[i] = NULL;
+            header->nexts[i] = tail;
+            tail->nexts[i] = NULL;
         }
     }
 
@@ -53,10 +51,9 @@ bool init_node_l(Node_l** node, int key, int value, unsigned int level){
     (*node)->key = INT_MAX;
     (*node)->value = 0;
 
-    (*node)->prevs = (Node_l**)malloc((level+1)*sizeof(Node_l*));
     (*node)->nexts = (Node_l**)malloc((level+1)*sizeof(Node_l*));
 
-    if(!(*node)->prevs || !(*node)->nexts){
+    if(!(*node)->nexts){
         fprintf(stderr, "Malloc failed");
         return false;
     }
@@ -150,6 +147,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
             continue;
         }
 
+        valid = true;
         for(int l = 0; valid&&(l<=level); l++){
             prev = prevs[l];
             next = nexts[l];
@@ -187,7 +185,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
     Node_l **prevs;
     Node_l **nexts;
     Node_l *victim;
-    int k = -1;
+    int victim_level = -1;
     int highlock = -1;
     bool marked = false;
     bool valid;
@@ -199,7 +197,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
         if (f >= 0) victim = nexts[f];
         if (marked || (f >= 0 && victim->fullylinked && victim->level==f && !victim->marked)) {
             if (!marked) {  // only mark victim once
-                k = victim->level;
+                victim_level = victim->level;
                 omp_set_nest_lock(&victim->lock);
                 if (victim->marked) {
                     omp_unset_nest_lock(&victim->lock);
@@ -212,7 +210,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
             // now marked
             // try to link out
             valid = true;
-            for (int l = 0; valid && (l<=k); l++) {
+            for (int l = 0; valid && (l<=victim_level); l++) {
                 prev = prevs[l];
                 omp_set_nest_lock(&prev->lock);
                 highlock = l;
@@ -225,7 +223,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
             }
             
             // link out from top to bottom
-            for (int l = k; l >= 0; l--) {
+            for (int l = victim_level; l >= 0; l--) {
                 prevs[l]->nexts[l] = victim->nexts[l];
             }
 
@@ -267,9 +265,6 @@ void free_node_l(Node_l* node){
 
     if(node->nexts){
         free(node->nexts);
-    }
-    if(node->prevs){
-        free(node->prevs);
     }
     free(node);
 

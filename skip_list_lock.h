@@ -46,13 +46,12 @@
 
 typedef struct Node_l{
     struct Node_l** nexts;
-    struct Node_l** prevs;
     omp_nest_lock_t lock;
     int key;
     int value;
     unsigned int level;
-    bool marked;
-    bool fullylinked;
+    volatile bool marked;
+    volatile bool fullylinked;
 }Node_l;
 
 
