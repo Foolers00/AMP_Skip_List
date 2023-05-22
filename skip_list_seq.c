@@ -184,7 +184,7 @@ void init_random_seq(){
 int random_level_generator_seq(unsigned int max_level){
     unsigned int level = 0;
     double random_number = (double)rand()/(double)RAND_MAX;
-    while(random_number < FRACTION && level <= max_level){
+    while(random_number < FRACTION && level < max_level){
         level++;
     }
     return level;
