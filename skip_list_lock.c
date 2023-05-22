@@ -108,23 +108,10 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
 }
 
 
-bool init_preds_succs_l(Node_l*** preds, Node_l*** succs, unsigned int level){
-    *preds = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
-    *succs = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
-
-    if(!*preds || !*succs){
-        fprintf(stderr, "Malloc failed");
-        return false;
-    }
-
-    return true;
-}
-
-
 bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
-    Node_l** preds;
-    Node_l** succs;
+    Node_l* preds[slist->max_level+1];
+    Node_l* succs[slist->max_level+1];
     Node_l* pred;
     Node_l* succ;
     Node_l* new_node;
@@ -133,7 +120,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
     bool valid = false;
     int level = random_level_generator_l(slist);
 
-    init_preds_succs_l(&preds, &succs, slist->max_level);
+    //init_preds_succs_l(&preds, &succs, slist->max_level);
 
     while(true){
 
@@ -181,16 +168,15 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 }
 
 bool remove_skip_list_l(Skip_list_l* slist, int key) {
+    
     Node_l *pred;
-    Node_l **preds;
-    Node_l **succs;
+    Node_l* preds[slist->max_level+1];
+    Node_l* succs[slist->max_level+1];
     Node_l *victim;
     int victim_level = -1;
     int highlock = -1;
     bool marked = false;
     bool valid;
-
-    init_preds_succs_l(&preds, &succs, slist->max_level);
 
     while (true) {
         int f = find_skip_list_l(slist, key, preds, succs);
@@ -239,10 +225,8 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
 
 bool contains_skip_list_l(Skip_list_l* slist, int key){
 
-    Node_l** preds;
-    Node_l** succs;
-
-    init_preds_succs_l(&preds, &succs, slist->max_level);
+    Node_l* preds[slist->max_level+1];
+    Node_l* succs[slist->max_level+1];
 
     int foundlevel = find_skip_list_l(slist, key, preds, succs);
 
@@ -252,7 +236,7 @@ bool contains_skip_list_l(Skip_list_l* slist, int key){
 }
 
 
-void unlock_preds_l(Node_l** preds, unsigned int level){
+void unlock_preds_l(Node_l* preds[], unsigned int level){
 
     for(int l = 0; l<=level; l++){
         omp_unset_nest_lock(&preds[l]->lock);
@@ -297,7 +281,7 @@ void print_skip_list_l(Skip_list_l* slist){
 
     node = slist->header->nexts[0];
 
-    fprintf(stdout, "Skip_list: ");
+    fprintf(stdout, "Skip_list_lock: ");
 
     while(node->nexts[0]){
         fprintf(stdout, "(%d, %d) ", node->key, node->value);
@@ -335,7 +319,7 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
 }
 
-int find_skip_list_l(Skip_list_l *slist, int key, Node_l **preds, Node_l **succs) {
+int find_skip_list_l(Skip_list_l *slist, int key, Node_l * preds[], Node_l *succs[]) {
     int foundlevel = -1; //not found at any level >= 0
     Node_l *pred = slist->header;
     for (int l = slist->max_level; l >= 0; l--) {
