@@ -108,11 +108,11 @@ unsigned int random_level_generator_l(Skip_list_l* slist){
 }
 
 
-bool init_prevs_nexts_l(Node_l*** prevs, Node_l*** nexts, unsigned int level){
-    *prevs = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
-    *nexts = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
+bool init_preds_succs_l(Node_l*** preds, Node_l*** succs, unsigned int level){
+    *preds = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
+    *succs = (Node_l**)malloc(sizeof(Node_l*)*(level+1));
 
-    if(!*prevs || !*nexts){
+    if(!*preds || !*succs){
         fprintf(stderr, "Malloc failed");
         return false;
     }
@@ -123,23 +123,23 @@ bool init_prevs_nexts_l(Node_l*** prevs, Node_l*** nexts, unsigned int level){
 
 bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
-    Node_l** prevs;
-    Node_l** nexts;
-    Node_l* prev;
-    Node_l* next;
+    Node_l** preds;
+    Node_l** succs;
+    Node_l* pred;
+    Node_l* succ;
     Node_l* new_node;
     Window_l w;
     int highlock = -1;
     bool valid = false;
     int level = random_level_generator_l(slist);
 
-    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
+    init_preds_succs_l(&preds, &succs, slist->max_level);
 
     while(true){
 
-        int f = find_skip_list_l(slist, key, prevs, nexts);
+        int f = find_skip_list_l(slist, key, preds, succs);
         if(f>=0){
-            Node_l* found = nexts[f];
+            Node_l* found = succs[f];
             if(!found->marked){
                 while(!found->fullylinked){}
                 return false;
@@ -149,28 +149,28 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
         valid = true;
         for(int l = 0; valid&&(l<=level); l++){
-            prev = prevs[l];
-            next = nexts[l];
-            omp_set_nest_lock(&prev->lock);
+            pred = preds[l];
+            succ = succs[l];
+            omp_set_nest_lock(&pred->lock);
             highlock = l;
-            w = (Window_l) {.pred = prev, .curr = next };
+            w = (Window_l) {.pred = pred, .curr = succ };
             valid = validate_skip_list_l(w, l);
         }
 
         if(!valid){
-            unlock_prevs_l(prevs, highlock);
+            unlock_preds_l(preds, highlock);
             continue;
         }
 
         init_node_l(&new_node, key, value, level);
 
         for(int l = 0; l<=level; l++){
-            new_node->nexts[l] = nexts[l];
-            prevs[l]->nexts[l] = new_node;
+            new_node->nexts[l] = succs[l];
+            preds[l]->nexts[l] = new_node;
         }
         new_node->fullylinked = true;
 
-        unlock_prevs_l(prevs, level);
+        unlock_preds_l(preds, level);
 
         break;
 
@@ -181,20 +181,20 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 }
 
 bool remove_skip_list_l(Skip_list_l* slist, int key) {
-    Node_l *prev;
-    Node_l **prevs;
-    Node_l **nexts;
+    Node_l *pred;
+    Node_l **preds;
+    Node_l **succs;
     Node_l *victim;
     int victim_level = -1;
     int highlock = -1;
     bool marked = false;
     bool valid;
 
-    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
+    init_preds_succs_l(&preds, &succs, slist->max_level);
 
     while (true) {
-        int f = find_skip_list_l(slist, key, prevs, nexts);
-        if (f >= 0) victim = nexts[f];
+        int f = find_skip_list_l(slist, key, preds, succs);
+        if (f >= 0) victim = succs[f];
         if (marked || (f >= 0 && victim->fullylinked && victim->level==f && !victim->marked)) {
             if (!marked) {  // only mark victim once
                 victim_level = victim->level;
@@ -211,20 +211,20 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
             // try to link out
             valid = true;
             for (int l = 0; valid && (l<=victim_level); l++) {
-                prev = prevs[l];
-                omp_set_nest_lock(&prev->lock);
+                pred = preds[l];
+                omp_set_nest_lock(&pred->lock);
                 highlock = l;
-                valid = !prev->marked && prev->nexts[l] == victim;
+                valid = !pred->marked && pred->nexts[l] == victim;
             }
 
             if (!valid) {   // validation failed
-                unlock_prevs_l(prevs, highlock);
+                unlock_preds_l(preds, highlock);
                 continue;
             }
             
             // link out from top to bottom
             for (int l = victim_level; l >= 0; l--) {
-                prevs[l]->nexts[l] = victim->nexts[l];
+                preds[l]->nexts[l] = victim->nexts[l];
             }
 
             omp_unset_nest_lock(&victim->lock);
@@ -239,23 +239,23 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
 
 bool contains_skip_list_l(Skip_list_l* slist, int key){
 
-    Node_l** prevs;
-    Node_l** nexts;
+    Node_l** preds;
+    Node_l** succs;
 
-    init_prevs_nexts_l(&prevs, &nexts, slist->max_level);
+    init_preds_succs_l(&preds, &succs, slist->max_level);
 
-    int foundlevel = find_skip_list_l(slist, key, prevs, nexts);
+    int foundlevel = find_skip_list_l(slist, key, preds, succs);
 
-    return(foundlevel>=0 && nexts[foundlevel]->fullylinked &&
-    !nexts[foundlevel]->marked);
+    return(foundlevel>=0 && succs[foundlevel]->fullylinked &&
+    !succs[foundlevel]->marked);
 
 }
 
 
-void unlock_prevs_l(Node_l** prevs, unsigned int level){
+void unlock_preds_l(Node_l** preds, unsigned int level){
 
     for(int l = 0; l<=level; l++){
-        omp_unset_nest_lock(&prevs[l]->lock);
+        omp_unset_nest_lock(&preds[l]->lock);
     }
 
 }
@@ -335,7 +335,7 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
 }
 
-int find_skip_list_l(Skip_list_l *slist, int key, Node_l **prevs, Node_l **nexts) {
+int find_skip_list_l(Skip_list_l *slist, int key, Node_l **preds, Node_l **succs) {
     int foundlevel = -1; //not found at any level >= 0
     Node_l *pred = slist->header;
     for (int l = slist->max_level; l >= 0; l--) {
@@ -347,8 +347,8 @@ int find_skip_list_l(Skip_list_l *slist, int key, Node_l **prevs, Node_l **nexts
         if (foundlevel == -1 && key == curr->key) {
             foundlevel = l; // found at level l
         }
-        prevs[l] = pred;
-        nexts[l] = curr;
+        preds[l] = pred;
+        succs[l] = curr;
     }
     return foundlevel;
 }

@@ -60,6 +60,15 @@ int main(){
 
     print_skip_list_l(&slist_l);
 
+    // remove
+    remove_skip_list_l(&slist_l, 3);
+    print_skip_list_l(&slist_l);
+
+    // contains
+    fprintf(stdout, "4 is contained: %s\n", contains_skip_list_l(&slist_l, 4) ? "true" : "false");
+    fprintf(stdout, "3 is contained: %s\n", contains_skip_list_l(&slist_l, 3) ? "true" : "false");
+    add_skip_list_l(&slist_l, numbers[2], numbers[2]);
+
     compare_results_l(&slist_seq, &slist_l);
 
 

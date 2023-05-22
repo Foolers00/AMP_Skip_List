@@ -95,15 +95,15 @@ bool init_random_l(Skip_list_l* slist);
 unsigned int random_level_generator_l(Skip_list_l* slist);
 
 /*
-    initializes prev and next array by using malloc and making an array that
+    initializes preds and succs array by using malloc and making an array that
     is level size big with Node_l* entries
 */
-bool init_prevs_nexts_l(Node_l*** prevs, Node_l*** nexts, unsigned int level);
+bool init_preds_succs_l(Node_l*** preds, Node_l*** succs, unsigned int level);
 
 /*
-    Unlocks all the locks from prevs[0] upto prevs[level]
+    Unlocks all the locks from preds[0] upto preds[level]
 */
-void unlock_prevs_l(Node_l** prevs, unsigned int level);
+void unlock_preds_l(Node_l** preds, unsigned int level);
 
 // Melvin
 bool add_skip_list_l(Skip_list_l* slist, int key, int value);
@@ -112,7 +112,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value);
 bool remove_skip_list_l(Skip_list_l* slist, int key);
 
 // Thomas
-int find_skip_list_l(Skip_list_l* slist, int key, Node_l** prevs, Node_l** nexts);
+int find_skip_list_l(Skip_list_l* slist, int key, Node_l** preds, Node_l** succs);
 
 // Thomas
 bool validate_skip_list_l(Window_l w, int l);
