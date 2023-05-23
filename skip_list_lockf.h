@@ -70,7 +70,7 @@ typedef struct Window_l{
 
 typedef struct Atomic_markable_reference {
     bool marked;
-    Node_lfree* ref;
+    Node_lfree* reference;
 } Atomic_markable_reference;
 
 
@@ -146,3 +146,7 @@ void print_skip_list_lfree(Skip_list_lfree* slist);
     is printed out otherwise success message is printed out
 */
 void compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfree);
+
+Node_lfree *get_markable_reference(Atomic_markable_reference *ref, bool *marked[]);
+
+bool cas_markable_reference(Node_lfree *curr_ref, Node_lfree *expected_ref, bool curr_marked, bool expected_marked);

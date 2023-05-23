@@ -23,8 +23,8 @@ bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level){
     #pragma omp parallel default(shared)
     {
         for(int i = 0; i <= max_level; i++){
-            header->nexts[i]->ref = tail;
-            tail->nexts[i]->ref = NULL;
+            header->nexts[i]->reference = tail;
+            tail->nexts[i]->reference = NULL;
         }
     }
 
@@ -106,3 +106,48 @@ unsigned int random_level_generator_lfree(Skip_list_lfree* slist){
 
 }
 
+bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
+    Node_lfree *preds[slist->max_level+1];
+    Node_lfree *succs[slist->max_level+1];
+    Node_lfree *succ;
+    int b = 0;
+    bool *marked[1];
+    bool done;
+
+
+    while (true) {
+        if (find_skip_list_lfree(slist, key, preds, succs)) {
+            return false;
+        } else {
+            // shortcut lists from level down to b+1
+            Node_lfree *rem_node = succs[b];
+            for (int l = rem_node->level; l >= b+1; l--) {
+                marked[0] = false;
+                succ = get_markable_reference(rem_node->nexts[l], marked);
+                while (!marked[0]) {
+                    // TODO: CAS
+                    succ = get_markable_reference(rem_node->nexts[l], marked);
+                }
+            }
+
+            // level 0 list
+            marked[0] = false;
+            succ = get_markable_reference(rem_node->nexts[b], marked);
+            while (true) {
+                // TODO: CAS
+                succ = get_markable_reference(succs[b]->nexts[b], marked);
+                if (done) {
+                    find_skip_list_lfree(slist, key, preds, succs);
+                    return true;
+                } else if (marked[0]) {
+                    return false;
+                }
+            }
+        }
+    }
+}
+
+Node_lfree *get_markable_reference(Atomic_markable_reference *ref, bool *marked[]) {
+    *marked[0] = ref->marked;
+    return ref->reference;
+}
