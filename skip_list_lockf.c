@@ -120,8 +120,7 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
                 marked = ismarked(rem_node->nexts[l]);
                 succ = getpointer(rem_node->nexts[l]);
                 while (!marked) {
-                    markedsucc = succ;
-                    setmark(markedsucc);
+                    markedsucc = setmark(succ);
                     CAS(&rem_node->nexts[l], &succ, markedsucc);
                     marked = ismarked(rem_node->nexts[l]);
                     succ = getpointer(rem_node->nexts[l]);
@@ -132,8 +131,7 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
             marked = ismarked(rem_node->nexts[b]);
             succ = getpointer(rem_node->nexts[b]);
             while (true) {
-                markedsucc = succ;
-                setmark(markedsucc);
+                markedsucc = setmark(succ);
                 done = CAS(&rem_node->nexts[b], &succ, markedsucc);
                 marked = ismarked(succs[b]->nexts[b]);
                 succ = getpointer(succs[b]->nexts[b]);
