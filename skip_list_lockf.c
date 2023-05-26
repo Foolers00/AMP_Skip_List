@@ -104,8 +104,9 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
     Node_lfree *preds[slist->max_level+1];
     Node_lfree *succs[slist->max_level+1];
     Node_lfree *succ;
+    Node_lfree *markedsucc;
     int b = 0;
-    bool* marked[1];
+    bool marked;
     bool done;
 
 
@@ -115,25 +116,31 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
         } else {
             // shortcut lists from level down to b+1
             Node_lfree *rem_node = succs[b];
-            for (int l = rem_node->level; l >= b+1; l--) {
-                marked[0] = false;
-                succ = get_markable_reference(rem_node->nexts[l], marked);
-                while (!marked[0]) {
-                    // TODO: CAS
-                    succ = get_markable_reference(rem_node->nexts[l], marked);
+            for (unsigned int l = rem_node->level; l >= b+1; l--) {
+                marked = ismarked(rem_node->nexts[l]);
+                succ = getpointer(rem_node->nexts[l]);
+                while (!marked) {
+                    markedsucc = succ;
+                    setmark(markedsucc);
+                    CAS(&rem_node->nexts[l], &succ, markedsucc);
+                    marked = ismarked(rem_node->nexts[l]);
+                    succ = getpointer(rem_node->nexts[l]);
                 }
             }
 
             // level 0 list
-            marked[0] = false;
-            succ = get_markable_reference(rem_node->nexts[b], marked);
+            marked = ismarked(rem_node->nexts[b]);
+            succ = getpointer(rem_node->nexts[b]);
             while (true) {
-                // TODO: CAS
-                succ = get_markable_reference(succs[b]->nexts[b], marked);
+                markedsucc = succ;
+                setmark(markedsucc);
+                done = CAS(&rem_node->nexts[b], &succ, markedsucc);
+                marked = ismarked(succs[b]->nexts[b]);
+                succ = getpointer(succs[b]->nexts[b]);
                 if (done) {
                     find_skip_list_lfree(slist, key, preds, succs);
                     return true;
-                } else if (marked[0]) {
+                } else if (marked) {
                     return false;
                 }
             }
