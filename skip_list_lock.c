@@ -167,6 +167,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
 }
 
+
 bool remove_skip_list_l(Skip_list_l* slist, int key) {
     
     Node_l *pred;
@@ -319,6 +320,7 @@ void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
 }
 
+
 int find_skip_list_l(Skip_list_l *slist, int key, Node_l * preds[], Node_l *succs[]) {
     int foundlevel = -1; //not found at any level >= 0
     Node_l *pred = slist->header;
@@ -336,6 +338,7 @@ int find_skip_list_l(Skip_list_l *slist, int key, Node_l * preds[], Node_l *succ
     }
     return foundlevel;
 }
+
 
 bool validate_skip_list_l(Window_l w, int l) {
     return (!w.pred->marked) && !(w.curr->marked) && (w.pred->nexts[l] == w.curr);

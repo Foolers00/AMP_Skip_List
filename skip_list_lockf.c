@@ -23,8 +23,8 @@ bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level){
     #pragma omp parallel default(shared)
     {
         for(int i = 0; i <= max_level; i++){
-            header->nexts[i]->reference = tail;
-            tail->nexts[i]->reference = NULL;
+            header->nexts[i] = tail;
+            tail->nexts[i] = NULL;
         }
     }
 
@@ -50,18 +50,12 @@ bool init_node_lfree(Node_lfree** node, int key, int value, unsigned int level){
     (*node)->key = key;
     (*node)->value = value;
 
-    (*node)->nexts = (Atomic_markable_reference **)malloc((level + 1) * sizeof(Atomic_markable_reference *));
+    (*node)->nexts = (Node_lfree **)malloc((level + 1) * sizeof(Node_lfree *));
 
     if(!(*node)->nexts){
         fprintf(stderr, "Malloc failed");
         return false;
     }
-
-    omp_init_nest_lock(&(*node)->lock);
-    for (int l = 0; l <= level; l++) {
-        (*node)->nexts[l]->marked = false;
-    }
-    (*node)->fullylinked = false;
 
     return true;
 
@@ -111,7 +105,7 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
     Node_lfree *succs[slist->max_level+1];
     Node_lfree *succ;
     int b = 0;
-    bool *marked[1];
+    bool* marked[1];
     bool done;
 
 
@@ -145,9 +139,4 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
             }
         }
     }
-}
-
-Node_lfree *get_markable_reference(Atomic_markable_reference *ref, bool *marked[]) {
-    *marked[0] = ref->marked;
-    return ref->reference;
 }

@@ -42,17 +42,19 @@
 #include "skip_list_seq.h"
 #endif
 
+#ifndef ATOMIC
+#define ATOMICE
+#include <stdatomic.h>
+#endif
+
 #define FRACTION (1.0/2.0)
 
-struct Atomic_markable_reference;
 
 typedef struct Node_lfree{
-    struct Atomic_markable_reference** nexts;
-    omp_nest_lock_t lock;
+    struct Node_lfree** nexts;
     int key;
     int value;
     unsigned int level;
-    volatile bool fullylinked;
 }Node_lfree;
 
 typedef struct Skip_list_lfree{
@@ -68,10 +70,15 @@ typedef struct Window_l{
     Node_lfree* curr;
 }Window_l;
 
-typedef struct Atomic_markable_reference {
-    bool marked;
-    Node_lfree* reference;
-} Atomic_markable_reference;
+
+#define CAS(_a,_e,_d) atomic_compare_exchange_weak(_a,_e,_d)
+
+#define UNMARK_MASK ~1
+#define MARK_BIT 0x0000000000001
+
+#define getpointer(_markedpointer)  ((Node_lfree*)(((long)_markedpointer) & UNMARK_MASK))
+#define ismarked(_markedpointer)    ((((long)_markedpointer) & MARK_BIT) != 0x0)
+#define setmark(_markedpointer)     ((Node_lfree*)(((long)_markedpointer) | MARK_BIT))
 
 
 /*
@@ -146,7 +153,3 @@ void print_skip_list_lfree(Skip_list_lfree* slist);
     is printed out otherwise success message is printed out
 */
 void compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfree);
-
-Node_lfree *get_markable_reference(Atomic_markable_reference *ref, bool *marked[]);
-
-bool cas_markable_reference(Node_lfree *curr_ref, Node_lfree *expected_ref, bool curr_marked, bool expected_marked);
