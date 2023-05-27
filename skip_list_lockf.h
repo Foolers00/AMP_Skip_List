@@ -43,7 +43,7 @@
 #endif
 
 #ifndef ATOMIC
-#define ATOMICE
+#define ATOMIC
 #include <stdatomic.h>
 #endif
 
