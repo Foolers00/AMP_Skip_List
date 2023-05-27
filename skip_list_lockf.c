@@ -100,6 +100,11 @@ unsigned int random_level_generator_lfree(Skip_list_lfree* slist){
 
 }
 
+
+bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value){
+    
+}
+
 bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
     Node_lfree *preds[slist->max_level+1];
     Node_lfree *succs[slist->max_level+1];
