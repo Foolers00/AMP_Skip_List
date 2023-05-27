@@ -103,6 +103,45 @@ unsigned int random_level_generator_lfree(Skip_list_lfree* slist){
 
 bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value){
     
+    Node_lfree* preds[slist->max_level+1];
+    Node_lfree* succs[slist->max_level+1];
+    Node_lfree* new_node;
+    Node_lfree* pred;
+    Node_lfree* succ;
+    int level = random_level_generator_lfree(slist);
+
+    init_node_lfree(&new_node, key, value, level);
+
+    while(true){
+        if(find_skip_list_lfree(slist, key, preds, succs)){ 
+            free_node_lfree(new_node); 
+            return false; 
+        }
+        else{            
+            for(int l = 0; l<=level; l++){
+                succ = succs[l];
+                new_node->nexts[l] = succ;
+            }
+            pred = preds[0];
+            succ = getpointer(succs[0]);
+            if(!CAS(&pred->nexts[0], &succ, new_node)){
+                continue;
+            }
+
+            for(int l = 1; l<=level; l++){
+                while(true){
+                    pred = preds[l];
+                    succ = getpointer(succs[l]);
+
+                    if(CAS(&pred->nexts[l], &succ, new_node)){
+                        break;
+                    }
+                    find_skip_list_lfree(slist, key, preds, succs);
+                }
+            }
+            return true;
+        }
+    }
 }
 
 bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
@@ -149,4 +188,34 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
             }
         }
     }
+}
+
+
+bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
+    bool marked = false;
+    Node_lfree* pred = slist->header;
+    Node_lfree* curr = NULL;
+    Node_lfree* succ = NULL;
+
+    for(int l = slist->max_level; l>=0; l--){
+        curr = pred->nexts[l];
+        while(true){
+            succ = curr->nexts[l];
+            marked = ismarked(succ);
+            while(marked){
+                curr = curr->nexts[l];
+                succ = curr->nexts[l];
+                marked = ismarked(succ);
+            }
+            if(curr->key < key){
+                pred = curr;
+                curr = succ;
+            }
+            else{
+                break;
+            }
+        }
+    }
+
+    return (curr->key == key); 
 }
