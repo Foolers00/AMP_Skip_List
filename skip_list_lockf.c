@@ -222,7 +222,6 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
 
 // Thomas
 int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], Node_lfree* succs[]){
-    int b = 0;
     bool marked = false;
     Node_lfree *pred, *curr, *succ;
     while(true){
