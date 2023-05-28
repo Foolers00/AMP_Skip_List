@@ -219,3 +219,38 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
 
     return (curr->key == key); 
 }
+
+// Thomas
+int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], Node_lfree* succs[]){
+    int b = 0;
+    bool marked = false;
+    Node_lfree *pred, *curr, *succ;
+    while(true){
+        pred = slist->header;
+        for(int l = slist->max_level; l >= 0; l--){
+            curr = pred->nexts[l];
+            while(true){
+                succ = curr->nexts[l];
+                marked = ismarked(succ);
+                while(marked){
+                    if(!CAS(&pred->nexts[l], &curr, succ)) goto _continue;
+                    curr = pred->nexts[l];
+                    succ = curr->nexts[l];
+                    marked = ismarked(succ);
+                }
+                if(curr->key < key){
+                    pred = curr; curr = succ;
+                }else{
+                    break;
+                }
+            }
+            preds[l] = pred; succs[l] = curr;
+        }
+        return (curr->key == key);
+        _continue:;
+    }
+
+}
+
+// Thomas
+bool validate_skip_list_lfree(Window_l w, int l);
