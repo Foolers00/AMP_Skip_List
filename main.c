@@ -8,6 +8,10 @@
 #include "skip_list_lock.h"
 #endif
 
+#ifndef SKIP_LIST_LOCK_FREE
+#define SKIP_LIST_LOCK_FREE
+#include "skip_list_lockf.h"
+#endif
 
 
 int main(){
@@ -82,3 +86,33 @@ int main(){
 
     return 0;
 }
+
+bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_lfree* slist_lfree) {
+    Node_seq* node_seq;
+    Node_l* node_l;
+    Node_lfree* node_lfree;
+
+    node_seq = slist_seq->header->nexts[0];
+    node_l = slist_l->header->nexts[0];
+    node_lfree = slist_lfree->header->nexts[0];
+
+    while (node_seq->nexts[0] && node_l->nexts[0] && node_lfree->nexts[0]) {
+        if (node_seq->key != node_l->key || node_l->key != node_lfree->key || node_seq->key != node_lfree->key) {
+            fprintf(stdout, "Comparison Failed: %d, %d and %d are not all the same.\n",
+                    node_seq->key, node_l->key, node_lfree->key);
+            return false;
+        }
+        node_seq = node_seq->nexts[0];
+        node_l = node_l->nexts[0];
+        node_lfree = node_lfree->nexts[0];
+    }
+
+    if (node_seq->nexts[0] || node_l->nexts[0] || node_lfree->nexts[0]) {
+        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
+        return false;
+    }
+
+    fprintf(stdout, "Comparison Succeeded\n");
+    return true;
+}
+
