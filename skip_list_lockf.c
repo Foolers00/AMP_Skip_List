@@ -155,7 +155,7 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
 
 
     while (true) {
-        if (find_skip_list_lfree(slist, key, preds, succs)) {
+        if (!find_skip_list_lfree(slist, key, preds, succs)) {
             return false;
         } else {
             // shortcut lists from level down to b+1
@@ -257,4 +257,20 @@ void free_node_lfree(Node_lfree* node){
         free(node->nexts);
     }
     free(node);
+}
+
+void print_skip_list_lfree(Skip_list_lfree* slist){
+
+    Node_lfree* node = NULL;
+
+    node = slist->header->nexts[0];
+
+    fprintf(stdout, "Skip_list_lock_free: ");
+
+    while(node->nexts[0]){
+        fprintf(stdout, "(%d, %d) ", node->key, node->value);
+        node = node->nexts[0];
+    }
+    fprintf(stdout, "\n");
+
 }
