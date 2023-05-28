@@ -252,5 +252,10 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
 
 }
 
-// Thomas
-bool validate_skip_list_lfree(Window_l w, int l);
+
+void free_node_lfree(Node_lfree* node){
+    if(node->nexts){
+        free(node->nexts);
+    }
+    free(node);
+}
