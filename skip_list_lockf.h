@@ -64,13 +64,6 @@ typedef struct Skip_list_lfree{
     unsigned int* random_seeds;
 }Skip_list_lfree;
 
-
-typedef struct Window_l{
-    Node_lfree* pred;
-    Node_lfree* curr;
-}Window_l;
-
-
 #define CAS(_a,_e,_d) atomic_compare_exchange_weak(_a,_e,_d)
 
 #define UNMARK_MASK ~1
@@ -120,9 +113,6 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key);
 // Thomas
 int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], Node_lfree* succs[]);
 
-// Thomas
-bool validate_skip_list_lfree(Window_l w, int l);
-
 /*
     returns true if the key is in the skip list slist, otherwise false
 */
@@ -137,11 +127,6 @@ void free_node_lfree(Node_lfree* node);
     frees up memory for skip list
 */
 void free_skip_list_lfree(Skip_list_lfree* slist);
-
-/*
-    frees up memory for window
-*/
-void free_window_lfree(Window_l* w);
 
 /*
     prints the skip list slist in the format (key, value)

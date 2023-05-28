@@ -222,7 +222,6 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
 
 // Thomas
 int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], Node_lfree* succs[]){
-    int b = 0;
     bool marked = false;
     Node_lfree *pred, *curr, *succ;
     while(true){
@@ -243,7 +242,7 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
                 }else{
                     break;
                 }
-            }
+            }   
             preds[l] = pred; succs[l] = curr;
         }
         return (curr->key == key);
@@ -251,6 +250,3 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
     }
 
 }
-
-// Thomas
-bool validate_skip_list_lfree(Window_l w, int l);
