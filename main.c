@@ -15,115 +15,143 @@
 
 
 bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_lfree* slist_lfree);
-
+void random_array(int* numbers, int size);
 
 int main(){
-    omp_set_num_threads(5);
     int num_of_threads = 5; 
 
-    int numbers[] = {1, 2, 3, 4, 5};
-    
-    //////////////////////////////// 
-    // Test: sequential skip list //
-    ////////////////////////////////
-    Skip_list_seq slist_seq;
-    
-    init_skip_list_seq(&slist_seq, 10);
+    bool small_tests = false;
+    bool extensive_test_locked = true;
 
 
-    // add
-    for(int i = 0; i < 5; i++){
-        add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+    if(small_tests){
+        int numbers[] = {1, 2, 3, 4, 5};
+        
+        //////////////////////////////// 
+        // Test: sequential skip list //
+        ////////////////////////////////
+        Skip_list_seq slist_seq;
+        
+        init_skip_list_seq(&slist_seq, 10);
+
+
+        // add
+        for(int i = 0; i < 5; i++){
+            add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+        }
+
+        print_skip_list_seq(&slist_seq);
+
+        // remove
+        remove_skip_list_seq(&slist_seq, 3);
+        print_skip_list_seq(&slist_seq);
+
+        // contains
+        fprintf(stdout, "4 is contained: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
+        fprintf(stdout, "3 is contained: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
+        add_skip_list_seq(&slist_seq, numbers[2], numbers[2]);
+        print_skip_list_seq(&slist_seq);
+
+        
+
+
+
+
+        //////////////////////////////// 
+        // Test: lock skip list ////////
+        ////////////////////////////////
+        Skip_list_l slist_l;
+
+        init_skip_list_l(&slist_l, 10);
+
+        // add
+        #pragma omp parallel num_threads(num_of_threads)
+        {
+            #pragma omp for
+            for(int i = 0; i < 5; i++){
+                add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+            }
+        }
+
+
+        print_skip_list_l(&slist_l);
+
+        // remove
+        remove_skip_list_l(&slist_l, 3);
+        print_skip_list_l(&slist_l);
+
+        // contains
+        fprintf(stdout, "4 is contained: %s\n", contains_skip_list_l(&slist_l, 4) ? "true" : "false");
+        fprintf(stdout, "3 is contained: %s\n", contains_skip_list_l(&slist_l, 3) ? "true" : "false");
+        add_skip_list_l(&slist_l, numbers[2], numbers[2]);
+
+        compare_results_l(&slist_seq, &slist_l);
+
+
+
+
+        ////////////////////////////////
+        // Test: lock free skip list ///
+        ////////////////////////////////
+        Skip_list_lfree slist_lfree;
+
+        init_skip_list_lfree(&slist_lfree, 10);
+
+        // add
+        #pragma omp parallel num_threads(num_of_threads)
+        {
+            #pragma omp for
+            for(int i = 0; i < 5; i++){
+                add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+            }
+        }
+
+        print_skip_list_lfree(&slist_lfree);
+
+        // remove
+        remove_skip_list_lfree(&slist_lfree, 3);
+        print_skip_list_lfree(&slist_lfree);
+
+        // contains
+        fprintf(stdout, "4 is contained: %s\n", contains_skip_list_lfree(&slist_lfree, 4) ? "true" : "false");
+        fprintf(stdout, "3 is contained: %s\n", contains_skip_list_lfree(&slist_lfree, 3) ? "true" : "false");
+        add_skip_list_lfree(&slist_lfree, numbers[2], numbers[2]);
+
+
+        compare_results(&slist_seq, &slist_l, &slist_lfree);
+
+
+        //////////////////////////////// 
+        // FREE ////////////////////////
+        ////////////////////////////////
+
+        free_skip_list_seq(&slist_seq);
+        free_skip_list_l(&slist_l);
     }
 
-    print_skip_list_seq(&slist_seq);
+    if(extensive_test_locked){
+        for(int size = 12; size <= 1000; size++ /* size *= 10 */ ){
+            Skip_list_seq seq;
+            Skip_list_l l;
+            init_skip_list_l(&l, size);
+            init_skip_list_seq(&seq, size);
+            int* numbers = (int*)malloc(sizeof(int)*size);
+            random_array(numbers, size);
+            for(int i = 0; i < size; i++){
+                add_skip_list_seq(&seq, numbers[i], numbers[i]);
+            }
 
-    // remove
-    remove_skip_list_seq(&slist_seq, 3);
-    print_skip_list_seq(&slist_seq);
-
-    // contains
-    fprintf(stdout, "4 is contained: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
-    fprintf(stdout, "3 is contained: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
-    add_skip_list_seq(&slist_seq, numbers[2], numbers[2]);
-    print_skip_list_seq(&slist_seq);
-
-    
-
-
-
-
-    //////////////////////////////// 
-    // Test: lock skip list ////////
-    ////////////////////////////////
-    Skip_list_l slist_l;
-
-    init_skip_list_l(&slist_l, 10);
-
-    // add
-    #pragma omp parallel num_threads(num_of_threads)
-    {
-        #pragma omp for
-        for(int i = 0; i < 5; i++){
-            add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+            #pragma omp parallel num_threads(size)
+            {
+                #pragma omp for
+                for(int i = 0; i < size; i++){
+                    add_skip_list_l(&l, numbers[i], numbers[i]);
+                }
+            }
+            printf("Extensive test (%i Threads): Add: ", size);
+            compare_results_l(&seq,&l);
         }
     }
-
-
-    print_skip_list_l(&slist_l);
-
-    // remove
-    remove_skip_list_l(&slist_l, 3);
-    print_skip_list_l(&slist_l);
-
-    // contains
-    fprintf(stdout, "4 is contained: %s\n", contains_skip_list_l(&slist_l, 4) ? "true" : "false");
-    fprintf(stdout, "3 is contained: %s\n", contains_skip_list_l(&slist_l, 3) ? "true" : "false");
-    add_skip_list_l(&slist_l, numbers[2], numbers[2]);
-
-    compare_results_l(&slist_seq, &slist_l);
-
-
-
-
-    ////////////////////////////////
-    // Test: lock free skip list ///
-    ////////////////////////////////
-    Skip_list_lfree slist_lfree;
-
-    init_skip_list_lfree(&slist_lfree, 10);
-
-    // add
-    #pragma omp parallel num_threads(num_of_threads)
-    {
-        #pragma omp for
-        for(int i = 0; i < 5; i++){
-            add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
-        }
-    }
-
-    print_skip_list_lfree(&slist_lfree);
-
-    // remove
-    remove_skip_list_lfree(&slist_lfree, 3);
-    print_skip_list_lfree(&slist_lfree);
-
-    // contains
-    fprintf(stdout, "4 is contained: %s\n", contains_skip_list_lfree(&slist_lfree, 4) ? "true" : "false");
-    fprintf(stdout, "3 is contained: %s\n", contains_skip_list_lfree(&slist_lfree, 3) ? "true" : "false");
-    add_skip_list_lfree(&slist_lfree, numbers[2], numbers[2]);
-
-
-    compare_results(&slist_seq, &slist_l, &slist_lfree);
-
-
-    //////////////////////////////// 
-    // FREE ////////////////////////
-    ////////////////////////////////
-
-    free_skip_list_seq(&slist_seq);
-    free_skip_list_l(&slist_l);
-
 
     return 0;
 }
@@ -155,5 +183,12 @@ bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_l
 
     fprintf(stdout, "Comparison Succeeded\n");
     return true;
+}
+
+void random_array(int* numbers, int size){
+    srand(time(NULL));
+    for (int i = 0; i < size; i++) {
+        numbers[i] = rand();
+    }
 }
 
