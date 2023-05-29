@@ -19,6 +19,7 @@ bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_l
 
 int main(){
     omp_set_num_threads(5);
+    int num_of_threads = 5; 
 
     int numbers[] = {1, 2, 3, 4, 5};
     
@@ -60,10 +61,14 @@ int main(){
     init_skip_list_l(&slist_l, 10);
 
     // add
-    #pragma omp for 
-    for(int i = 0; i < 5; i++){
-        add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+    #pragma omp parallel num_threads(num_of_threads)
+    {
+        #pragma omp for
+        for(int i = 0; i < 5; i++){
+            add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+        }
     }
+
 
     print_skip_list_l(&slist_l);
 
@@ -89,9 +94,12 @@ int main(){
     init_skip_list_lfree(&slist_lfree, 10);
 
     // add
-    #pragma omp for
-    for(int i = 0; i < 5; i++){
-        add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+    #pragma omp parallel num_threads(num_of_threads)
+    {
+        #pragma omp for
+        for(int i = 0; i < 5; i++){
+            add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+        }
     }
 
     print_skip_list_lfree(&slist_lfree);
