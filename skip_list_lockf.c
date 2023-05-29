@@ -153,7 +153,6 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
     bool marked;
     bool done;
 
-
     while (true) {
         if (!find_skip_list_lfree(slist, key, preds, succs)) {
             return false;
@@ -198,13 +197,13 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
     Node_lfree* succ = NULL;
 
     for(int l = slist->max_level; l>=0; l--){
-        curr = pred->nexts[l];
+        curr = getpointer(pred->nexts[l]);
         while(true){
-            succ = curr->nexts[l];
+            succ = getpointer(curr->nexts[l]);
             marked = ismarked(succ);
             while(marked){
-                curr = curr->nexts[l];
-                succ = curr->nexts[l];
+                curr = getpointer(curr->nexts[l]);
+                succ = getpointer(curr->nexts[l]);
                 marked = ismarked(succ);
             }
             if(curr->key < key){
@@ -227,14 +226,14 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
     while(true){
         pred = slist->header;
         for(int l = slist->max_level; l >= 0; l--){
-            curr = pred->nexts[l];
+            curr = getpointer(pred->nexts[l]);
             while(true){
-                succ = curr->nexts[l];
+                succ = getpointer(curr->nexts[l]);
                 marked = ismarked(succ);
                 while(marked){
                     if(!CAS(&pred->nexts[l], &curr, succ)) goto _continue;
-                    curr = pred->nexts[l];
-                    succ = curr->nexts[l];
+                    curr = getpointer(pred->nexts[l]);
+                    succ = getpointer(curr->nexts[l]);
                     marked = ismarked(succ);
                 }
                 if(curr->key < key){
@@ -263,13 +262,13 @@ void print_skip_list_lfree(Skip_list_lfree* slist){
 
     Node_lfree* node = NULL;
 
-    node = slist->header->nexts[0];
+    node = getpointer(slist->header->nexts[0]);
 
     fprintf(stdout, "Skip_list_lock_free: ");
 
-    while(node->nexts[0]){
+    while(getpointer(node->nexts[0])){
         fprintf(stdout, "(%d, %d) ", node->key, node->value);
-        node = node->nexts[0];
+        node = getpointer(node->nexts[0]);
     }
     fprintf(stdout, "\n");
 
