@@ -138,6 +138,30 @@ void test_lock_2(){
         printf("Extensive test (%i Threads): Add: ", size);
         compare_results_l(&seq, &l);
 
+        //remove
+        for(int i = 0; i < size; i++){
+            if(numbers[i]%2 == 0){
+                remove_skip_list_seq(&seq, numbers[i]);
+            }
+        }
+
+        #pragma omp parallel num_threads(size)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                if(numbers[i]%2 == 0){
+                    remove_skip_list_l(&l, numbers[i]);
+                }
+            }
+        }
+
+        //compare
+        printf("Extensive test (%i Threads): Remove: ", size);
+        if(!compare_results_l(&seq, &l)){
+            printf("\nTest failed\n");
+            exit(1);
+        }
+
         // free
         free_skip_list_seq(&seq);
         free_skip_list_l(&l);
