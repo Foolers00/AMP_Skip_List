@@ -196,6 +196,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
 
             // now marked
             // try to link out
+            highlock = -1;
             valid = true;
             for (int l = 0; valid && (l<=victim_level); l++) {
                 pred = preds[l];
@@ -215,6 +216,7 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
             }
 
             omp_unset_nest_lock(&victim->lock);
+            unlock_preds_l(preds, highlock);
             return true;
 
         } else {
