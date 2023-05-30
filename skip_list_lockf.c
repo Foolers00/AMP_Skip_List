@@ -298,3 +298,19 @@ void print_skip_list_lfree(Skip_list_lfree* slist){
     fprintf(stdout, "\n");
 
 }
+
+void print_marked_skip_list_lfree(Skip_list_lfree* slist) {
+    Node_lfree* node = NULL;
+    node = slist->header;
+
+    printf("Marked nodes: ");
+
+    while (getpointer(node->nexts[0]) != NULL) {
+        node = getpointer(node->nexts[0]);
+        if (node->nexts[0] != NULL && ismarked(node->nexts[0])) {
+            printf("(%d, %d) ", node->key, node->value);
+        }
+    }
+
+    printf("\n");
+}
