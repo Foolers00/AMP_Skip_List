@@ -211,12 +211,12 @@ void print_skip_list_seq(Skip_list_seq* slist){
 
     node = slist->header->nexts[0];
 
-    fprintf(stdout, "Skip_list_seq: ");
+    printf("Skip_list_seq: ");
 
     while(node->nexts[0]){
-        fprintf(stdout, "(%d, %d) ", node->key, node->value);
+        printf("(%d, %d) ", node->key, node->value);
         node = node->nexts[0];
     }
-    fprintf(stdout, "\n");
+    printf("\n");
 
 }

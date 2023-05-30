@@ -32,8 +32,8 @@ void test_seq_1(){
     print_skip_list_seq(&slist_seq);
 
     // contains
-    fprintf(stdout, "4 is contained: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
-    fprintf(stdout, "3 is contained: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
+    printf("4 is contained: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
+    printf("3 is contained: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
     add_skip_list_seq(&slist_seq, numbers[2], numbers[2]);
     print_skip_list_seq(&slist_seq);
 
@@ -86,11 +86,11 @@ void test_lock_1(){
     print_skip_list_l(&slist_l);
 
     // contains
-    fprintf(stdout, "4 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
-    fprintf(stdout, "4 is contained in skip list lockfree: %s\n", contains_skip_list_l(&slist_l, 4) ? "true" : "false");
+    printf("4 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
+    printf("4 is contained in skip list lockfree: %s\n", contains_skip_list_l(&slist_l, 4) ? "true" : "false");
 
-    fprintf(stdout, "3 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
-    fprintf(stdout, "3 is contained in skip list lockfree: %s\n", contains_skip_list_l(&slist_l, 3) ? "true" : "false");
+    printf("3 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
+    printf("3 is contained in skip list lockfree: %s\n", contains_skip_list_l(&slist_l, 3) ? "true" : "false");
     
 
     // reset
@@ -188,11 +188,11 @@ void test_lockfree_1(){
     print_skip_list_lfree(&slist_lfree);
 
     // contains
-    fprintf(stdout, "4 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
-    fprintf(stdout, "4 is contained in skip list lockfree: %s\n", contains_skip_list_lfree(&slist_lfree, 4) ? "true" : "false");
+    printf("4 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 4) ? "true" : "false");
+    printf("4 is contained in skip list lockfree: %s\n", contains_skip_list_lfree(&slist_lfree, 4) ? "true" : "false");
 
-    fprintf(stdout, "3 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
-    fprintf(stdout, "3 is contained in skip list lockfree: %s\n", contains_skip_list_lfree(&slist_lfree, 3) ? "true" : "false");
+    printf("3 is contained in skip list seq: %s\n", contains_skip_list_seq(&slist_seq, 3) ? "true" : "false");
+    printf("3 is contained in skip list lockfree: %s\n", contains_skip_list_lfree(&slist_lfree, 3) ? "true" : "false");
     
     // reset
     add_skip_list_seq(&slist_seq, numbers[2], numbers[2]);
@@ -223,6 +223,9 @@ void test_lockfree_2(){
         int* numbers = (int*)malloc(sizeof(int)*size);
         random_array(numbers, size);
 
+        // contains array
+        bool* contains_array = (bool*)malloc(sizeof(bool)*size);
+
         // add
         for(int i = 0; i < size; i++){
             add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
@@ -237,7 +240,7 @@ void test_lockfree_2(){
         }
         printf("Extensive test (%i Threads): Add: ", size);
         
-        // compare 
+        // add compare 
         if(!compare_results_lfree(&slist_seq, &slist_lfree)){
             printf("\nTest failed\n");
             break;
@@ -261,16 +264,42 @@ void test_lockfree_2(){
         }
         printf("Extensive test (%i Threads): Remove: ", size);
 
-        // compare 
+        // remove compare 
         if(!compare_results_lfree(&slist_seq, &slist_lfree)){
             printf("\nTest failed\n");
             break;
         }
 
+        
+        // contains
+
+        printf("Extensive test (%i Threads): Contains: ", size);
+
+        #pragma omp parallel num_threads(size)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                contains_array[i] = contains_skip_list_lfree(&slist_lfree, numbers[i]);
+            }
+        }
+
+        for(int i = 0; i<size; i++){
+            if(contains_array[i] != contains_skip_list_seq(&slist_seq, numbers[i])){
+                printf("Comparison Failed: %s and %s are not the same.\n", !contains_array[i] ? "true" : "false", 
+                contains_array[i] ? "true" : "false");
+                goto _out;
+            }
+        }
+
+        printf("Comparison Succeeded\n\n");
+
+
         // free
         free_skip_list_seq(&slist_seq);
         free_skip_list_lfree(&slist_lfree);
     }
+
+    _out:;
 }
 
 
@@ -290,7 +319,7 @@ bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_l
 
     while (node_seq->nexts[0] && node_l->nexts[0] && getpointer(node_lfree->nexts[0])) {
         if (node_seq->key != node_l->key || node_l->key != node_lfree->key || node_seq->key != node_lfree->key) {
-            fprintf(stdout, "Comparison Failed: %d, %d and %d are not all the same.\n",
+            printf("Comparison Failed: %d, %d and %d are not all the same.\n",
                     node_seq->key, node_l->key, node_lfree->key);
             return false;
         }
@@ -300,11 +329,11 @@ bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_l
     }
 
     if (node_seq->nexts[0] || node_l->nexts[0] || getpointer(node_lfree->nexts[0])) {
-        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
+        printf("Comparison Failed: Lists are not the same length\n");
         return false;
     }
 
-    fprintf(stdout, "Comparison Succeeded\n");
+    printf("Comparison Succeeded\n");
     return true;
 }
 
@@ -319,7 +348,7 @@ bool compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
     while(node_seq->nexts[0] && node_l->nexts[0]){
         if(node_seq->key != node_l->key){
-            fprintf(stdout, "Comparison Failed: %d not same as %d\n",
+            printf("Comparison Failed: %d not same as %d\n",
             node_seq->key, node_l->key);
             return false;
         }
@@ -328,11 +357,11 @@ bool compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
     }
 
     if(node_seq->nexts[0] || node_l->nexts[0]){
-        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
+        printf("Comparison Failed: Lists are not the same length\n");
         return false;
     }
 
-    fprintf(stdout, "Comparison Succeded\n");
+    printf("Comparison Succeded\n");
     return true;
 
 }
@@ -352,7 +381,7 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
             continue;
         }
         if (node_seq->key != node_lfree->key) {
-            fprintf(stdout, "Comparison Failed: %d and %d are not all the same.\n",
+            printf("Comparison Failed: %d and %d are not the same.\n",
                     node_seq->key, node_lfree->key);
             return false;
         }
@@ -362,11 +391,11 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
     }   
 
     if (node_seq->nexts[0] || node_lfree->nexts[0]) {
-        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
+        printf("Comparison Failed: Lists are not the same length\n");
         return false;
     }
 
-    fprintf(stdout, "Comparison Succeeded\n");
+    printf("Comparison Succeeded\n");
     return true;
 }
 
