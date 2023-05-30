@@ -293,32 +293,7 @@ void print_skip_list_l(Skip_list_l* slist){
 }
 
 
-void compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
-    Node_seq* node_seq;
-    Node_l* node_l;
-
-    node_seq = slist_seq->header->nexts[0];
-    node_l = slist_l->header->nexts[0];
-
-    while(node_seq->nexts[0] && node_l->nexts[0]){
-        if(node_seq->key != node_l->key){
-            fprintf(stdout, "Comparison Failed: %d not same as %d\n",
-            node_seq->key, node_l->key);
-            return;
-        }
-        node_seq = node_seq->nexts[0];
-        node_l = node_l->nexts[0];
-    }
-
-    if(node_seq->nexts[0] || node_l->nexts[0]){
-        fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
-        return;
-    }
-
-    fprintf(stdout, "Comparison Succeded\n");
-
-}
 
 
 int find_skip_list_l(Skip_list_l *slist, int key, Node_l * preds[], Node_l *succs[]) {

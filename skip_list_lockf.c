@@ -258,6 +258,22 @@ void free_node_lfree(Node_lfree* node){
     free(node);
 }
 
+
+void free_skip_list_lfree(Skip_list_lfree* slist){
+
+    Node_lfree* node = slist->tail;
+    Node_lfree* node_next = slist->tail->nexts[0];
+
+    while(node && node_next){
+        free_node_lfree(node);
+        node = node_next;
+        node_next = node_next->nexts[0];
+    }
+
+    free_node_lfree(node);
+}
+
+
 void print_skip_list_lfree(Skip_list_lfree* slist){
 
     Node_lfree* node = NULL;
