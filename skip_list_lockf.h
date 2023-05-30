@@ -133,4 +133,7 @@ void free_skip_list_lfree(Skip_list_lfree* slist);
 */
 void print_skip_list_lfree(Skip_list_lfree* slist);
 
-
+/*
+    prints the marked nodes in slist
+*/
+void print_marked_skip_list_lfree(Skip_list_lfree* slist);
