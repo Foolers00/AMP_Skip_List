@@ -27,7 +27,7 @@ int main(){
     // Test: lock free skip list ///
     ////////////////////////////////
 
-    //test_lockfree_1();
+    test_lockfree_1();
 
     //test_lockfree_2();
 

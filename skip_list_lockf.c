@@ -281,14 +281,19 @@ void print_skip_list_lfree(Skip_list_lfree* slist){
 
     Node_lfree* node = NULL;
 
-    node = getpointer(slist->header->nexts[0]);
+    node = slist->header;
 
     fprintf(stdout, "Skip_list_lock_free: ");
 
-    while(getpointer(node->nexts[0])){
-        fprintf(stdout, "(%d, %d) ", node->key, node->value);
+    while(getpointer(node->nexts[0])->nexts[0]){
+        if(ismarked(node->nexts[0])){
+            node = getpointer(node->nexts[0]);
+            continue;
+        }
         node = getpointer(node->nexts[0]);
+        fprintf(stdout, "(%d, %d) ", node->key, node->value);
     }
+
     fprintf(stdout, "\n");
 
 }

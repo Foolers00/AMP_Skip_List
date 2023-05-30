@@ -177,6 +177,9 @@ void test_lockfree_1(){
         }
     }
 
+    // compare
+    compare_results_lfree(&slist_seq, &slist_lfree);
+
     print_skip_list_lfree(&slist_lfree);
 
     // remove
@@ -235,7 +238,34 @@ void test_lockfree_2(){
         printf("Extensive test (%i Threads): Add: ", size);
         
         // compare 
-        compare_results_lfree(&slist_seq, &slist_lfree);
+        if(!compare_results_lfree(&slist_seq, &slist_lfree)){
+            printf("\nTest failed\n");
+            break;
+        }
+
+        // remove
+        for(int i = 0; i < size; i++){
+            if(numbers[i]%2 == 0){
+                remove_skip_list_seq(&slist_seq, numbers[i]);
+            }
+        }
+
+        #pragma omp parallel num_threads(size)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                if(numbers[i]%2 == 0){
+                    remove_skip_list_lfree(&slist_lfree, numbers[i]);
+                }
+            }
+        }
+        printf("Extensive test (%i Threads): Remove: ", size);
+
+        // compare 
+        if(!compare_results_lfree(&slist_seq, &slist_lfree)){
+            printf("\nTest failed\n");
+            break;
+        }
 
         // free
         free_skip_list_seq(&slist_seq);
@@ -279,7 +309,6 @@ bool compare_results(Skip_list_seq* slist_seq, Skip_list_l* slist_l, Skip_list_l
 }
 
 
-
 bool compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 
     Node_seq* node_seq;
@@ -309,25 +338,30 @@ bool compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l){
 }
 
 
-
 bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfree){
     Node_seq* node_seq;
     Node_lfree* node_lfree;
 
     node_seq = slist_seq->header->nexts[0];
-    node_lfree = getpointer(slist_lfree->header->nexts[0]);
+    node_lfree = slist_lfree->header;
 
-    while (node_seq->nexts[0] && getpointer(node_lfree->nexts[0])) {
+    while (node_seq->nexts[0] && getpointer(node_lfree->nexts[0])->nexts[0]) {
+   
+        if(ismarked(node_lfree->nexts[0])){
+            node_lfree = getpointer(node_lfree->nexts[0]);
+            continue;
+        }
+        node_lfree = getpointer(node_lfree->nexts[0]);
         if (node_seq->key != node_lfree->key) {
             fprintf(stdout, "Comparison Failed: %d and %d are not all the same.\n",
                     node_seq->key, node_lfree->key);
             return false;
         }
         node_seq = node_seq->nexts[0];
-        node_lfree = getpointer(node_lfree->nexts[0]);
-    }
+          
+    }   
 
-    if (node_seq->nexts[0] || getpointer(node_lfree->nexts[0])) {
+    if (node_seq->nexts[0] ||getpointer(node_lfree->nexts[0])->nexts[0]) {
         fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
         return false;
     }
@@ -335,7 +369,6 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
     fprintf(stdout, "Comparison Succeeded\n");
     return true;
 }
-
 
 
 void random_array(int* numbers, int size){
