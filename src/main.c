@@ -28,7 +28,7 @@ int main(){
     
     //test_lock_1();
 
-    //test_lock_2();
+    test_lock_2();
 
 
     ////////////////////////////////
@@ -37,7 +37,7 @@ int main(){
 
     //test_lockfree_1();
 
-    test_lockfree_2();
+    //test_lockfree_2();
 
 
     ////////////////////////////////

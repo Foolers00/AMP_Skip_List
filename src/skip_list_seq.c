@@ -9,7 +9,7 @@
 
 
 
-bool init_skip_list_seq(Skip_list_seq* slist, unsigned int max_level){
+bool init_skip_list_seq(Skip_list_seq* slist, int max_level){
     Node_seq* header = NULL;
     Node_seq* tail = NULL;
 
@@ -34,7 +34,7 @@ bool init_skip_list_seq(Skip_list_seq* slist, unsigned int max_level){
 }
 
 
-bool init_node_seq(Node_seq** node, int key, int value, unsigned int level){
+bool init_node_seq(Node_seq** node, int key, int value, int level){
     
     *node = (Node_seq*)malloc(sizeof(Node_seq));
 
@@ -44,8 +44,8 @@ bool init_node_seq(Node_seq** node, int key, int value, unsigned int level){
     }
 
     (*node)->level = level;
-    (*node)->key = INT_MAX;
-    (*node)->value = 0;
+    (*node)->key = key;
+    (*node)->value = value;
 
     (*node)->nexts = (Node_seq**)malloc((level+1)*sizeof(Node_seq*));
 
@@ -70,22 +70,8 @@ bool add_skip_list_seq(Skip_list_seq* slist, int key, int value){
         return true;
     }
 
-
-    new_node = (Node_seq*)malloc(sizeof(Node_seq));
-    if(!new_node){
-        fprintf(stderr, "Malloc failed");
-        return false;
-    }
-    new_node->level = random_level_generator_seq(slist->max_level);
-    new_node->key = key;
-    new_node->value = value;
-
-    new_node->nexts = (Node_seq**)malloc((new_node->level+1)*sizeof(Node_seq*));
-
-    if(!new_node->nexts){
-        fprintf(stderr, "Malloc failed");
-        return false;
-    }
+    init_node_seq(&new_node, key, value, random_level_generator_seq(slist->max_level));
+    
 
     for(int i = new_node->level; i >= 0; i--){
         new_node->nexts[i] = proto[i].curr;
@@ -132,7 +118,7 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]){
     proto[slist->max_level].curr = slist->tail;
     
     for(int i = slist->max_level; i >= 0; i--){
-        node = find_list_seq(slist, i, key, &proto[i]);
+        node = find_list_seq(i, key, &proto[i]);
         
         if(i != 0){
             proto[i-1].pred = proto[i].pred;
@@ -144,7 +130,7 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]){
 }
 
 
-Node_seq* find_list_seq(Skip_list_seq* slist, unsigned int level, int key, Window_seq* w){
+Node_seq* find_list_seq(int level, int key, Window_seq* w){
 
     while(w->pred != w->curr && w->pred->nexts[level]->key < key){
         w->pred = w->pred->nexts[level];
@@ -166,8 +152,8 @@ void init_random_seq(){
 } 
 
 
-int random_level_generator_seq(unsigned int max_level){
-    unsigned int level = 0;
+int random_level_generator_seq(int max_level){
+    int level = 0;
     double random_number = (double)rand()/(double)RAND_MAX;
     while(random_number < FRACTION && level < max_level){
         level++;

@@ -37,7 +37,7 @@ bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level, int num_of_thre
 
 }
 
-bool init_node_lfree(Node_lfree** node, int key, int value, unsigned int level){
+bool init_node_lfree(Node_lfree** node, int key, int value, int level){
 
     *node = (Node_lfree*)malloc(sizeof(Node_lfree));
 
@@ -87,9 +87,9 @@ bool init_random_lfree(Skip_list_lfree* slist, int num_of_threads){
 
 unsigned int random_level_generator_lfree(Skip_list_lfree* slist){
 
-    unsigned int level = 0;
+    int level = 0;
     unsigned int* seed = &slist->random_seeds[omp_get_thread_num()];
-    unsigned int max_level = slist->max_level;
+    int max_level = slist->max_level;
 
     double random_number = (double)rand_r(seed)/(double)RAND_MAX;
 
@@ -150,7 +150,6 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
     Node_lfree *succs[slist->max_level+1];
     Node_lfree *succ;
     Node_lfree *markedsucc;
-    int b = 0;
     bool marked;
     bool done;
 
@@ -159,8 +158,8 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
             return false;
         } else {
             // shortcut lists from level down to b+1
-            Node_lfree *rem_node = succs[b];
-            for (unsigned int l = rem_node->level; l >= b+1; l--) {
+            Node_lfree *rem_node = succs[0];
+            for (int l = rem_node->level; l >= 0+1; l--) {
                 marked = ismarked(rem_node->nexts[l]);
                 succ = getpointer(rem_node->nexts[l]);
                 while (!marked) {
@@ -172,13 +171,13 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
             }
 
             // level 0 list
-            marked = ismarked(rem_node->nexts[b]);
-            succ = getpointer(rem_node->nexts[b]);
+            marked = ismarked(rem_node->nexts[0]);
+            succ = getpointer(rem_node->nexts[0]);
             while (true) {
                 markedsucc = setmark(succ);
-                done = CAS(&rem_node->nexts[b], &succ, markedsucc);
-                marked = ismarked(succs[b]->nexts[b]);
-                succ = getpointer(succs[b]->nexts[b]);
+                done = CAS(&rem_node->nexts[0], &succ, markedsucc);
+                marked = ismarked(succs[0]->nexts[0]);
+                succ = getpointer(succs[0]->nexts[0]);
                 if (done) {
                     find_skip_list_lfree(slist, key, preds, succs);
                     return true;
@@ -223,7 +222,10 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
 // Thomas
 int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], Node_lfree* succs[]){
     bool marked = false;
-    Node_lfree *pred, *curr, *succ;
+    Node_lfree* pred = NULL;
+    Node_lfree* curr = NULL;
+    Node_lfree* succ = NULL;
+
     while(true){
         pred = slist->header;
         for(int l = slist->max_level; l >= 0; l--){

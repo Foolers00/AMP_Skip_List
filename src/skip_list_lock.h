@@ -49,7 +49,7 @@ typedef struct Node_l{
     omp_nest_lock_t lock;
     int key;
     int value;
-    unsigned int level;
+    int level;
     volatile bool marked;
     volatile bool fullylinked;
 }Node_l;
@@ -58,7 +58,7 @@ typedef struct Node_l{
 typedef struct Skip_list_l{
     Node_l* header;
     Node_l* tail;
-    unsigned int max_level;
+    int max_level;
     unsigned int* random_seeds;
 }Skip_list_l;
 
@@ -80,7 +80,7 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level, int num_of_threads);
     Initializes node with key, value and level and allocates memory for
     the node itselfs and the prevs and nexts arrays
 */
-bool init_node_l(Node_l** node, int key, int value, unsigned int level);
+bool init_node_l(Node_l** node, int key, int value, int level);
 
 /* 
     must be called before using function random_level_generator,
@@ -98,7 +98,7 @@ unsigned int random_level_generator_l(Skip_list_l* slist);
 /*
     Unlocks all the locks from preds[0] upto preds[level]
 */
-void unlock_preds_l(Node_l* preds[], unsigned int level);
+void unlock_preds_l(Node_l* preds[], int level);
 
 
 // Melvin

@@ -54,13 +54,13 @@ typedef struct Node_lfree{
     struct Node_lfree** nexts;
     int key;
     int value;
-    unsigned int level;
+    int level;
 }Node_lfree;
 
 typedef struct Skip_list_lfree{
     Node_lfree* header;
     Node_lfree* tail;
-    unsigned int max_level;
+    int max_level;
     unsigned int* random_seeds;
 }Skip_list_lfree;
 
@@ -85,7 +85,7 @@ bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level, int num_of_thre
     Initializes node with key, value and level and allocates memory for
     the node itselfs and the prevs and nexts arrays
 */
-bool init_node_lfree(Node_lfree** node, int key, int value, unsigned int level);
+bool init_node_lfree(Node_lfree** node, int key, int value, int level);
 
 /*
     must be called before using function random_level_generator,
@@ -102,7 +102,7 @@ unsigned int random_level_generator_lfree(Skip_list_lfree* slist);
 /*
     Unlocks all the locks from prevs[0] upto prevs[level]
 */
-void unlock_preds_lfree(Node_lfree* preds[], unsigned int level);
+void unlock_preds_lfree(Node_lfree* preds[], int level);
 
 // Melvin
 bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value);
