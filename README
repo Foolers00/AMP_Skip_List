@@ -1,7 +1,7 @@
-Bubblesort
+Skip List sequential, lock and lock free
 -------------------------------
 
-This example benchmarks bubblesort.
+This example benchmarks Skip list sequential, lock and lock free.
 
   make small-bench
 
