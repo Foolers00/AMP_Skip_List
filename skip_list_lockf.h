@@ -79,7 +79,7 @@ typedef struct Skip_list_lfree{
     where both have an array of lists next and prev
     that are max_level long and point to each other
 */
-bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level);
+bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level, int num_of_threads);
 
 /*
     Initializes node with key, value and level and allocates memory for
@@ -91,7 +91,7 @@ bool init_node_lfree(Node_lfree** node, int key, int value, unsigned int level);
     must be called before using function random_level_generator,
     sets the seeds for all threads, is called in init_skip_list_lfree
 */
-bool init_random_lfree(Skip_list_lfree* slist);
+bool init_random_lfree(Skip_list_lfree* slist, int num_of_threads);
 
 /*
     returns random level count,

@@ -34,6 +34,8 @@ void test_lock_2();
 
 void test_lockfree_1();
 
+void test_lockfree_2();
+
 
 ////////////////////////////////
 // Test: additional methods ////

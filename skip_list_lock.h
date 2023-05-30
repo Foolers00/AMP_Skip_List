@@ -74,7 +74,7 @@ typedef struct Window_l{
     where both have an array of lists next and prev 
     that are max_level long and point to each other    
 */
-bool init_skip_list_l(Skip_list_l* slist, int max_level);
+bool init_skip_list_l(Skip_list_l* slist, int max_level, int num_of_threads);
 
 /* 
     Initializes node with key, value and level and allocates memory for
@@ -86,7 +86,7 @@ bool init_node_l(Node_l** node, int key, int value, unsigned int level);
     must be called before using function random_level_generator,
     sets the seeds for all threads, is called in init_skip_list_l
 */
-bool init_random_l(Skip_list_l* slist);
+bool init_random_l(Skip_list_l* slist, int num_of_threads);
 
 /* 
     returns random level count, 

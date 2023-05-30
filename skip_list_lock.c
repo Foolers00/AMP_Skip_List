@@ -7,12 +7,12 @@
 #include "skip_list_lock.h"
 #endif
 
-bool init_skip_list_l(Skip_list_l* slist, int max_level){
+bool init_skip_list_l(Skip_list_l* slist, int max_level, int num_of_threads){
 
     Node_l* header = NULL;
     Node_l* tail = NULL;
 
-    init_random_l(slist);
+    init_random_l(slist, num_of_threads);
 
     if(!init_node_l(&tail, INT_MAX, 0,
     max_level)){ return false; }
@@ -67,13 +67,13 @@ bool init_node_l(Node_l** node, int key, int value, unsigned int level){
 }
 
 
-bool init_random_l(Skip_list_l* slist){
+bool init_random_l(Skip_list_l* slist, int num_of_threads){
 
     time_t t;
     int id;
 
     slist->random_seeds =
-    (unsigned int*)malloc(sizeof(unsigned int)*omp_get_num_threads());
+    (unsigned int*)malloc(sizeof(unsigned int)*num_of_threads); 
     if(!slist->random_seeds){
         fprintf(stderr, "Malloc failed");
         return false;
@@ -268,6 +268,8 @@ void free_skip_list_l(Skip_list_l* slist){
     }
 
     free_node_l(node);
+    free(slist->random_seeds);
+
 }
 
 

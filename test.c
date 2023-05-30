@@ -61,7 +61,7 @@ void test_lock_1(){
 
     // init skip list
     init_skip_list_seq(&slist_seq, 10);
-    init_skip_list_l(&slist_l, 10);
+    init_skip_list_l(&slist_l, 10, num_of_threads);
 
 
     // add
@@ -110,13 +110,13 @@ void test_lock_1(){
 
 
 void test_lock_2(){
-    for(int size = 12; size <= 1000; size++ /* size *= 10 */ ){
+    for(int size = 13; size <= 1000; size++ /* size *= 10 */ ){
         
         Skip_list_seq seq;
         Skip_list_l l;
         
         // init lists
-        init_skip_list_l(&l, size);
+        init_skip_list_l(&l, size, size);
         init_skip_list_seq(&seq, size);
         
         // init numbers array
@@ -137,6 +137,10 @@ void test_lock_2(){
         }
         printf("Extensive test (%i Threads): Add: ", size);
         compare_results_l(&seq, &l);
+
+        // free
+        free_skip_list_seq(&seq);
+        free_skip_list_l(&l);
     }
 }
 
@@ -157,7 +161,7 @@ void test_lockfree_1(){
 
     // init
     init_skip_list_seq(&slist_seq, 10);
-    init_skip_list_lfree(&slist_lfree, 10);
+    init_skip_list_lfree(&slist_lfree, 10, 5);
 
 
     // add
@@ -199,6 +203,44 @@ void test_lockfree_1(){
     ////////////////////////////////
     free_skip_list_seq(&slist_seq);
     free_skip_list_lfree(&slist_lfree);
+}
+
+
+void test_lockfree_2(){
+    for(int size = 12; size <= 1000; size++ /* size *= 10 */ ){
+        
+        Skip_list_seq slist_seq;
+        Skip_list_lfree slist_lfree;
+        
+        // init lists
+        init_skip_list_seq(&slist_seq, size);
+        init_skip_list_lfree(&slist_lfree, size, size);
+        
+        // init numbers array
+        int* numbers = (int*)malloc(sizeof(int)*size);
+        random_array(numbers, size);
+
+        // add
+        for(int i = 0; i < size; i++){
+            add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+        }
+
+        #pragma omp parallel num_threads(size)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+            }
+        }
+        printf("Extensive test (%i Threads): Add: ", size);
+        
+        // compare 
+        compare_results_lfree(&slist_seq, &slist_lfree);
+
+        // free
+        free_skip_list_seq(&slist_seq);
+        free_skip_list_lfree(&slist_lfree);
+    }
 }
 
 
