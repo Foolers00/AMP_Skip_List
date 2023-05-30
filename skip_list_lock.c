@@ -20,7 +20,7 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level, int num_of_threads){
     if(!init_node_l(&header, INT_MIN, 0,
     max_level)){ return false; }
 
-    #pragma omp parallel default(shared)
+    #pragma omp parallel default(shared) num_threads(num_of_threads)
     {
         for(int i = 0; i <= max_level; i++){
             header->nexts[i] = tail;

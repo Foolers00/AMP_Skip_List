@@ -210,7 +210,7 @@ void test_lockfree_1(){
 
 
 void test_lockfree_2(){
-    for(int size = 12; size <= 1000; size++ /* size *= 10 */ ){
+    for(int size = 1; size <= 1000000; size*=10 /* size *= 10 */ ){
         
         Skip_list_seq slist_seq;
         Skip_list_lfree slist_lfree;
