@@ -201,11 +201,11 @@ bool contains_skip_list_lfree(Skip_list_lfree* slist, int key){
         curr = getpointer(pred->nexts[l]);
         while(true){
             succ = getpointer(curr->nexts[l]);
-            marked = ismarked(succ);
+            marked = ismarked(curr->nexts[l]);
             while(marked){
                 curr = getpointer(curr->nexts[l]);
                 succ = getpointer(curr->nexts[l]);
-                marked = ismarked(succ);
+                marked = ismarked(curr->nexts[l]);
             }
             if(curr->key < key){
                 pred = curr;
@@ -230,12 +230,12 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
             curr = getpointer(pred->nexts[l]);
             while(true){
                 succ = getpointer(curr->nexts[l]);
-                marked = ismarked(succ);
+                marked = ismarked(curr->nexts[l]);
                 while(marked){
                     if(!CAS(&pred->nexts[l], &curr, succ)) goto _continue;
                     curr = getpointer(pred->nexts[l]);
                     succ = getpointer(curr->nexts[l]);
-                    marked = ismarked(succ);
+                    marked = ismarked(curr->nexts[l]);
                 }
                 if(curr->key < key){
                     pred = curr; curr = succ;
@@ -281,17 +281,18 @@ void print_skip_list_lfree(Skip_list_lfree* slist){
 
     Node_lfree* node = NULL;
 
-    node = slist->header;
+    node = getpointer(slist->header->nexts[0]);
 
     fprintf(stdout, "Skip_list_lock_free: ");
 
-    while(getpointer(node->nexts[0])->nexts[0]){
+    while(node->nexts[0]){
         if(ismarked(node->nexts[0])){
             node = getpointer(node->nexts[0]);
             continue;
         }
-        node = getpointer(node->nexts[0]);
         fprintf(stdout, "(%d, %d) ", node->key, node->value);
+        node = getpointer(node->nexts[0]);
+        
     }
 
     fprintf(stdout, "\n");

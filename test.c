@@ -343,25 +343,25 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
     Node_lfree* node_lfree;
 
     node_seq = slist_seq->header->nexts[0];
-    node_lfree = slist_lfree->header;
+    node_lfree = getpointer(slist_lfree->header->nexts[0]);
 
-    while (node_seq->nexts[0] && getpointer(node_lfree->nexts[0])->nexts[0]) {
+    while (node_seq->nexts[0] && node_lfree->nexts[0]) {
    
         if(ismarked(node_lfree->nexts[0])){
             node_lfree = getpointer(node_lfree->nexts[0]);
             continue;
         }
-        node_lfree = getpointer(node_lfree->nexts[0]);
         if (node_seq->key != node_lfree->key) {
             fprintf(stdout, "Comparison Failed: %d and %d are not all the same.\n",
                     node_seq->key, node_lfree->key);
             return false;
         }
         node_seq = node_seq->nexts[0];
+        node_lfree = getpointer(node_lfree->nexts[0]);
           
     }   
 
-    if (node_seq->nexts[0] ||getpointer(node_lfree->nexts[0])->nexts[0]) {
+    if (node_seq->nexts[0] || node_lfree->nexts[0]) {
         fprintf(stdout, "Comparison Failed: Lists are not the same length\n");
         return false;
     }
