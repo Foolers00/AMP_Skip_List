@@ -79,7 +79,7 @@ bool init_random_l(Skip_list_l* slist, int num_of_threads){
         return false;
     }
 
-    #pragma omp parallel private(t, id)
+    #pragma omp parallel private(t, id) num_threads(num_of_threads)
     {
         id = omp_get_thread_num();
         slist->random_seeds[id] = (unsigned) time(&t) + id;

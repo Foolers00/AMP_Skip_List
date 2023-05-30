@@ -20,7 +20,7 @@ bool init_skip_list_lfree(Skip_list_lfree* slist, int max_level, int num_of_thre
     if(!init_node_lfree(&header, INT_MIN, 0,
                     max_level)){ return false; }
 
-    #pragma omp parallel default(shared)
+    #pragma omp parallel default(shared) num_threads(num_of_threads)
     {
         for(int i = 0; i <= max_level; i++){
             header->nexts[i] = tail;
@@ -74,7 +74,7 @@ bool init_random_lfree(Skip_list_lfree* slist, int num_of_threads){
         return false;
     }
 
-    #pragma omp parallel private(t, id)
+    #pragma omp parallel private(t, id) num_threads(num_of_threads)
     {
         id = omp_get_thread_num();
         slist->random_seeds[id] = (unsigned) time(&t) + id;
