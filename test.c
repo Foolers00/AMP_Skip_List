@@ -110,7 +110,7 @@ void test_lock_1(){
 
 
 void test_lock_2(){
-    for(int size = 13; size <= 1000; size++ /* size *= 10 */ ){
+    for(int size = 2; size <= 1000; size++ /* size *= 10 */ ){
         
         Skip_list_seq seq;
         Skip_list_l l;
@@ -122,6 +122,9 @@ void test_lock_2(){
         // init numbers array
         int* numbers = (int*)malloc(sizeof(int)*size);
         random_array(numbers, size);
+
+        // contains array
+        bool* contains_array = (bool*)malloc(sizeof(bool)*size);
 
         // add
         for(int i = 0; i < size; i++){
@@ -162,6 +165,22 @@ void test_lock_2(){
             exit(1);
         }
 
+        printf("Extensive test (%i Threads): Contains: ", size);
+        #pragma omp parallel num_threads(size)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                contains_array[i] = contains_skip_list_l(&l, numbers[i]);
+            }
+        }
+
+        for(int i = 0; i < size; i++){
+            if(contains_array[i] != contains_skip_list_seq(&seq, numbers[i])){
+                printf("Comparison Failed: %i %s in locked skiplist and %s in sequential skiplist.\n", numbers[i], !contains_array[i] ? "contained" : "not contained", contains_array[i] ? "contained": "not contained");
+                exit(1);
+            }
+        }
+        printf("Comparison Succeeded\n\n");
         // free
         free_skip_list_seq(&seq);
         free_skip_list_l(&l);
