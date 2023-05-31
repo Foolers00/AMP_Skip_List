@@ -2,19 +2,19 @@ import ctypes
 import os
 import datetime
 
-class cBenchCounters(ctypes.Structure):
-    '''
-    This has to match the returned struct in library.c
-    '''
-    _fields_ = [ ("failed_turns", ctypes.c_int),
-                 ("successful_lends", ctypes.c_int) ]
+# TODO: define performance counters
+# class cBenchCounters(ctypes.Structure):
+#     '''
+#     This has to match the returned struct in library.c
+#     '''
+#     _fields_ = [ ("failed_turns", ctypes.c_int),
+#                  ("successful_lends", ctypes.c_int) ]
 
 class cBenchResult(ctypes.Structure):
     '''
     This has to match the returned struct in library.c
     '''
-    _fields_ = [ ("time", ctypes.c_float),
-                 ("counters", cBenchCounters) ]
+    _fields_ = [ ("time", ctypes.c_float) ]
 
 class Benchmark:
     '''
@@ -87,16 +87,15 @@ def benchmark():
     # just one parameter, we cannot write (1000) because that would not parse
     # as a tuple, instead python understands a trailing comma as a tuple with
     # just one entry.
-    smallbench_10 = Benchmark(binary.small_bench, (10,), 1,
-                              num_threads, basedir, "smallbench_10")
-
     smallbench_100 = Benchmark(binary.small_bench, (100,), 3,
-                               num_threads, basedir, "smallbench_100")
+                               num_threads, basedir, "smallbench_100")    
+    smallbench_1000 = Benchmark(binary.small_bench, (1000,), 3,
+                               num_threads, basedir, "smallbench_1000")
 
-    smallbench_10.run()
-    smallbench_10.write_avg_data()
-    # smallbench_100.run()
-    # smallbench_100.write_avg_data()
+    smallbench_100.run()
+    smallbench_100.write_avg_data()
+    smallbench_1000.run()
+    smallbench_1000.write_avg_data()
 
 if __name__ == "__main__":
     benchmark()

@@ -10,7 +10,7 @@ struct bench_result {
     // struct counters reduced_counters;
 };
 
-struct bench_result small_bench(int t);
+struct bench_result small_bench(int t, int times);
 
 
 int main(){
@@ -44,7 +44,7 @@ int main(){
     /////// Test: Benchmarks ///////
     ////////////////////////////////
 
-    // small_bench(16);
+    // small_bench(16, 10000);
 
     return 0;
 }
@@ -68,16 +68,15 @@ void bench_l_add(Skip_list_l *slist_l, int numbers[], int num_len) {
     }
 }
 
-struct bench_result small_bench(int t) {
+struct bench_result small_bench(int t, int times) {
     struct bench_result result;
     double tic, toc;
 
     Skip_list_l slist_l;
-    int times = 10000;
 
     // init lists
     init_skip_list_l(&slist_l, 3, t); 
-    
+
     // init numbers array
     int* numbers = (int*)malloc(sizeof(int)*times);
     random_array(numbers, times);

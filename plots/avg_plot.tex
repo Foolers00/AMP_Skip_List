@@ -16,11 +16,11 @@
 
       % Each graph is added via \addplot and a .data file, and
       % add a legend entry for the previous graph.
-      \addplot table {\DATAPATH/avg/smallbench_10.data};
-      \addlegendentry{10 lends}
-
       \addplot table {\DATAPATH/avg/smallbench_100.data};
-      \addlegendentry{30 lends}
+      \addlegendentry{100 adds}
+
+      \addplot table {\DATAPATH/avg/smallbench_1000.data};
+      \addlegendentry{1000 adds}
 
     \end{axis}
   \end{tikzpicture}
