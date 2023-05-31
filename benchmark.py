@@ -87,15 +87,23 @@ def benchmark():
     # just one parameter, we cannot write (1000) because that would not parse
     # as a tuple, instead python understands a trailing comma as a tuple with
     # just one entry.
-    smallbench_100 = Benchmark(binary.small_bench, (100,), 3,
+    smallbench_100 = Benchmark(binary.small_bench, (100,3), 3,
                                num_threads, basedir, "smallbench_100")    
-    smallbench_1000 = Benchmark(binary.small_bench, (1000,), 3,
-                               num_threads, basedir, "smallbench_1000")
+    smallbench_1000_3 = Benchmark(binary.small_bench, (1000,3), 3,
+                               num_threads, basedir, "smallbench_1000_3")
+    smallbench_1000_5 = Benchmark(binary.small_bench, (1000,5), 3,
+                               num_threads, basedir, "smallbench_1000_5")
+    smallbench_1000_10 = Benchmark(binary.small_bench, (1000,10), 3,
+                               num_threads, basedir, "smallbench_1000_10")
 
     smallbench_100.run()
     smallbench_100.write_avg_data()
-    smallbench_1000.run()
-    smallbench_1000.write_avg_data()
+    smallbench_1000_3.run()
+    smallbench_1000_3.write_avg_data()
+    smallbench_1000_5.run()
+    smallbench_1000_5.write_avg_data()
+    smallbench_1000_10.run()
+    smallbench_1000_10.write_avg_data()
 
 if __name__ == "__main__":
     benchmark()

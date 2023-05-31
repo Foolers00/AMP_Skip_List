@@ -84,6 +84,7 @@ dkms.conf
 ## LaTeX outputs
 avg_plot.pdf
 report.pdf
+/plots/*.pdf
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
 *.bbl

@@ -5,7 +5,7 @@
 
 \begin{document}
   \begin{tikzpicture}
-    \begin{axis}[title={Add item operations},              % Title of the graph
+    \begin{axis}[title={Add item operations for different amounts of levels},              % Title of the graph
                  xtick={1,2,4,8,16,32,64,128,256},  % The ticks on the x-axis
                  xlabel={number of threads},        % Label of the x-axis
                  ylabel={time in [ms]},             % Label of the y-axis
@@ -16,11 +16,12 @@
 
       % Each graph is added via \addplot and a .data file, and
       % add a legend entry for the previous graph.
-      \addplot table {\DATAPATH/avg/smallbench_100.data};
-      \addlegendentry{100 adds}
-
       \addplot table {\DATAPATH/avg/smallbench_1000_3.data};
-      \addlegendentry{1000 adds}
+      \addlegendentry{1000 adds (3 levels)}
+      \addplot table {\DATAPATH/avg/smallbench_1000_5.data};
+      \addlegendentry{1000 adds (5 levels)}
+      \addplot table {\DATAPATH/avg/smallbench_1000_10.data};
+      \addlegendentry{1000 adds (10 levels)}
 
     \end{axis}
   \end{tikzpicture}

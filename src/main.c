@@ -10,7 +10,7 @@ struct bench_result {
     // struct counters reduced_counters;
 };
 
-struct bench_result small_bench(int t, int times);
+struct bench_result small_bench(int t, int times, int max_level);
 
 
 int main(){
@@ -49,9 +49,11 @@ int main(){
     return 0;
 }
 
+
 ////////////////////////////////
 ///// Benchmark: Add nodes /////
 ////////////////////////////////
+
 void bench_l_add(Skip_list_l *slist_l, int numbers[], int num_len) {
     int tid = omp_get_thread_num();
     printf("Thread %d started.\n", tid);
@@ -68,14 +70,14 @@ void bench_l_add(Skip_list_l *slist_l, int numbers[], int num_len) {
     }
 }
 
-struct bench_result small_bench(int t, int times) {
+struct bench_result small_bench(int t, int times, int max_level) {
     struct bench_result result;
     double tic, toc;
 
     Skip_list_l slist_l;
 
     // init lists
-    init_skip_list_l(&slist_l, 3, t); 
+    init_skip_list_l(&slist_l, max_level, t); 
 
     // init numbers array
     int* numbers = (int*)malloc(sizeof(int)*times);
@@ -95,7 +97,7 @@ struct bench_result small_bench(int t, int times) {
     free_skip_list_l(&slist_l);
 
     result.time = (toc - tic);
-    printf("Adding %d nodes to lock based skip list with %d threads took: %fs\n", times, t, toc - tic);
+    printf("Adding %d nodes to lock based skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
 
     return result;
 }

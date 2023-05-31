@@ -44,6 +44,12 @@ small-bench: $(BUILD_DIR) $(NAME).so $(DATA_DIR)
 	@echo "Running small-bench ..."
 	@python3 benchmark.py
 
+levels-plot:
+	@echo "Plotting small-bench (levels) results ..."
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lock_levels_plot.tex}"'
+	@echo "============================================"
+	@echo "Created plots/lock_levels_plot.pdf"
+
 small-plot: 
 	@echo "Plotting small-bench results ..."
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{avg_plot.tex}"'
