@@ -104,10 +104,32 @@ struct bench_result small_bench(int t, int times, int max_level) {
     // printf("Generating random numbers took: %fs\n", toc - tic);
 
 
-    // SEQUENTIAL
+    //////////////////////////////// 
+    // Sequential Skip List ////////
+    ////////////////////////////////
+
+    // add
     tic = omp_get_wtime();
     for (int i = 0; i < times; i++) {
         add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+    }
+    toc = omp_get_wtime();
+
+
+    // remove 
+    tic = omp_get_wtime();
+    for (int i = 0; i < times; i++) {
+        if(numbers[i]%2 == 0){
+            remove_skip_list_seq(&slist_seq, numbers[i]);
+        }
+    }
+    toc = omp_get_wtime();
+
+
+    // contains
+    tic = omp_get_wtime();
+    for (int i = 0; i < times; i++) {
+        contains_skip_list_seq(&slist_seq, numbers[i]);
     }
     toc = omp_get_wtime();
 
@@ -116,9 +138,45 @@ struct bench_result small_bench(int t, int times, int max_level) {
     printf("Adding %d nodes to sequential skip list (%d levels) took: %fs\n", times, max_level, toc - tic);
 
 
-    // LOCK BASED
+    //////////////////////////////// 
+    // Lock Skip List //////////////
+    ////////////////////////////////
+
+    // add
     tic = omp_get_wtime();
-    { bench_l_add(&slist_l, numbers, times, t);}
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+        }
+    }
+    toc = omp_get_wtime();
+
+
+    // remove
+    tic = omp_get_wtime();
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            if(numbers[i] % 2 == 0){
+                remove_skip_list_l(&slist_l, numbers[i]);
+            }
+        }
+    }
+    toc = omp_get_wtime();
+
+
+    // contains
+    tic = omp_get_wtime();
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            contains_skip_list_l(&slist_l, numbers[i]);
+        }
+    }
     toc = omp_get_wtime();
 
     free_skip_list_l(&slist_l);
@@ -126,9 +184,45 @@ struct bench_result small_bench(int t, int times, int max_level) {
     printf("Adding %d nodes to lock based skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
 
 
-    // LOCK FREE
+    //////////////////////////////// 
+    // Lock Free Skip List /////////
+    ////////////////////////////////
+    
+    // add
     tic = omp_get_wtime();
-    { bench_lfree_add(&slist_lfree, numbers, times, t); }
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+        }
+    }
+    toc = omp_get_wtime();
+
+
+    // remove
+    tic = omp_get_wtime();
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            if(numbers[i] % 2 == 0){
+                remove_skip_list_lfree(&slist_lfree, numbers[i]);
+            }
+        }
+    }
+    toc = omp_get_wtime();
+
+
+    // contains
+    tic = omp_get_wtime();
+    #pragma omp parallel num_threads(t)
+    {
+        #pragma omp for
+        for(int i = 0; i < times; i++) {
+            contains_skip_list_lfree(&slist_lfree, numbers[i]);
+        }
+    }
     toc = omp_get_wtime();
 
     free_skip_list_lfree(&slist_lfree);
