@@ -56,32 +56,27 @@ int main(){
 ///// Benchmark: Add nodes /////
 ////////////////////////////////
 
-void bench_l_add(Skip_list_l *slist, int numbers[], int num_len) {
-    int tid = omp_get_thread_num();
-    // printf("Thread %d started.\n", tid);
-    // for (int i = 0; i < num_len; i++) {
-    //     printf("numbers[%d]: %d\n", i, numbers[i]);
-    // }
-
-    // Barrier to force OMP to start all threads at the same time
-    #pragma omp barrier
-
-    // add
-    for(int i = 0; i < num_len; i++) {
-        add_skip_list_l(slist, numbers[i], numbers[i]);
+void bench_l_add(Skip_list_l *slist, int numbers[], int num_len, int num_threads) {
+    
+    #pragma omp parallel num_threads(num_threads)
+    {
+        #pragma omp for
+        // add
+        for(int i = 0; i < num_len; i++) {
+            add_skip_list_l(slist, numbers[i], numbers[i]);
+        }
     }
 }
 
-void bench_lfree_add(Skip_list_lfree *slist, int numbers[], int num_len) {
-    int tid = omp_get_thread_num();
-    // printf("Thread %d started.\n", tid);
+void bench_lfree_add(Skip_list_lfree *slist, int numbers[], int num_len, int num_threads) {
 
-    // Barrier to force OMP to start all threads at the same time
-    #pragma omp barrier
-
+    #pragma omp parallel num_threads(num_threads)
+    {
     // add
-    for(int i = 0; i < num_len; i++) {
-        add_skip_list_lfree(slist, numbers[i], numbers[i]);
+        #pragma omp for
+        for(int i = 0; i < num_len; i++) {
+            add_skip_list_lfree(slist, numbers[i], numbers[i]);
+        }
     }
 }
 
@@ -122,14 +117,8 @@ struct bench_result small_bench(int t, int times, int max_level) {
 
 
     // LOCK BASED
-    omp_set_num_threads(t);
     tic = omp_get_wtime();
-    {
-        #pragma omp parallel for
-        for (int i=0; i<t; i++) {
-            bench_l_add(&slist_l, numbers, times);
-        }
-    }
+    { bench_l_add(&slist_l, numbers, times, t);}
     toc = omp_get_wtime();
 
     free_skip_list_l(&slist_l);
@@ -138,14 +127,8 @@ struct bench_result small_bench(int t, int times, int max_level) {
 
 
     // LOCK FREE
-    omp_set_num_threads(t);
     tic = omp_get_wtime();
-    {
-        #pragma omp parallel for
-        for (int i=0; i<t; i++) {
-            bench_lfree_add(&slist_lfree, numbers, times);
-        }
-    }
+    { bench_lfree_add(&slist_lfree, numbers, times, t); }
     toc = omp_get_wtime();
 
     free_skip_list_lfree(&slist_lfree);
