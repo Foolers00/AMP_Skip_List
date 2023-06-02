@@ -260,8 +260,8 @@ void free_node_l(Node_l* node){
 
 void free_skip_list_l(Skip_list_l* slist){
 
-    Node_l* node = slist->tail;
-    Node_l* node_next = slist->tail->nexts[0];
+    Node_l* node = slist->header;
+    Node_l* node_next = slist->header->nexts[0];
 
     while(node && node_next){
         free_node_l(node);

@@ -229,6 +229,9 @@ struct bench_result small_bench(int t, int times, int max_level) {
     result.time_lfree = (toc - tic);
     printf("Adding %d nodes to lock free skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
 
+    // free random numbers
+    free(numbers);
+
     return result;
 }
 

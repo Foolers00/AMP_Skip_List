@@ -172,8 +172,8 @@ void free_node_seq(Node_seq* node){
 
 void free_skip_list_seq(Skip_list_seq* slist){
 
-    Node_seq* node = slist->tail;
-    Node_seq* node_next = slist->tail->nexts[0];
+    Node_seq* node = slist->header;
+    Node_seq* node_next = slist->header->nexts[0];
 
     while(node && node_next){
         free_node_seq(node);

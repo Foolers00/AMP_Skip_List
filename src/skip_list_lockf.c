@@ -264,8 +264,8 @@ void free_node_lfree(Node_lfree* node){
 
 void free_skip_list_lfree(Skip_list_lfree* slist){
 
-    Node_lfree* node = slist->tail;
-    Node_lfree* node_next = slist->tail->nexts[0];
+    Node_lfree* node = slist->header;
+    Node_lfree* node_next = slist->header->nexts[0];
 
     while(node && node_next){
         free_node_lfree(node);
