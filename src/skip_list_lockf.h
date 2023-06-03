@@ -48,6 +48,13 @@
 #endif
 
 #define FRACTION (1.0/2.0)
+#define COUNTERS
+
+#ifdef COUNTERS
+#define INC(_c) ((_c)++)
+#else
+#define INC(_c)
+#endif
 
 
 typedef struct Node_lfree{
@@ -62,6 +69,10 @@ typedef struct Skip_list_lfree{
     Node_lfree* tail;
     int max_level;
     unsigned int* random_seeds;
+
+    #ifdef COUNTERS
+    unsigned long long adds, rems, cons, trav, fail, rtry;
+    #endif
 }Skip_list_lfree;
 
 #define CAS(_a,_e,_d) atomic_compare_exchange_weak(_a,_e,_d)

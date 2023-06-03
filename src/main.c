@@ -198,6 +198,11 @@ struct bench_result small_bench(int t, int times, int max_level) {
         }
     }
     toc = omp_get_wtime();
+    printf("Adding %d nodes to lock free skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
+    #ifdef COUNTERS
+    printf("[COUNTERS] node adds: %lld (%lld failed CASs)\n", (&slist_lfree)->adds, (&slist_lfree)->fail);  // counts the add for every level
+    (&slist_lfree)->fail = 0;
+    #endif
 
 
     // remove
@@ -212,6 +217,11 @@ struct bench_result small_bench(int t, int times, int max_level) {
         }
     }
     toc = omp_get_wtime();
+    printf("Removing %d nodes from lock free skip list (%d levels) with %d threads took: %fs\n", times/2, max_level, t, toc - tic);
+    #ifdef COUNTERS
+    printf("[COUNTERS] node removes: %lld (%lld failed CASs)\n", (&slist_lfree)->adds, (&slist_lfree)->fail);
+    (&slist_lfree)->fail = 0;
+    #endif
 
 
     // contains
@@ -224,10 +234,11 @@ struct bench_result small_bench(int t, int times, int max_level) {
         }
     }
     toc = omp_get_wtime();
+    printf("Checking %d nodes for contains in lock free skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
+    printf("[COUNTERS] nodes checked for contains: %lld\n", (&slist_lfree)->cons);
 
     free_skip_list_lfree(&slist_lfree);
     result.time_lfree = (toc - tic);
-    printf("Adding %d nodes to lock free skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
 
     // free random numbers
     free(numbers);
