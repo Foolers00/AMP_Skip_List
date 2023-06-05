@@ -3,16 +3,25 @@
 #include "test.h"
 #endif
 
+// #undef COUNTERS
 
+#ifdef COUNTERS
+#define INC(_c) ((_c)++)
+#else
+#ifdef INC
+#undef INC
+#endif
+#define INC(_c)
+#endif
 
-struct bench_result {
+typedef struct bench_result {
     float time_seq;
     float time_l;
     float time_lfree;
     // struct counters reduced_counters;
-};
+} bench_result;
 
-struct bench_result small_bench(int t, int times, int max_level);
+bench_result small_bench(int t, int times, int max_level);
 
 
 int main(){
@@ -80,8 +89,137 @@ void bench_lfree_add(Skip_list_lfree *slist, int numbers[], int num_len, int num
     }
 }
 
-struct bench_result small_bench(int t, int times, int max_level) {
-    struct bench_result result;
+void benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_level, int t) {    // TODO: add perfomance counters (implementation missing)
+    int i;
+    double exec_time;
+    unsigned long long tops = 0;
+
+    #ifdef COUNTERS
+    unsigned long long adds, rems, cons, trav, fail, rtry;
+    adds = 0;
+    rems = 0;
+    cons = 0;
+    trav = 0;
+    fail = 0;
+    rtry = 0;
+    #endif
+
+    Skip_list_seq slist_seq;
+    Skip_list_l slist_l;
+    Skip_list_lfree slist_lfree;
+
+    // init lists
+    init_skip_list_seq(&slist_seq, max_level);
+    init_skip_list_l(&slist_l, max_level, t);
+    init_skip_list_lfree(&slist_lfree, max_level, t);
+
+    // init numbers array
+    int *numbers = (int*)malloc(sizeof(int)*n_ops);
+    random_array(numbers, n_ops);
+    for (i = 0; i < n_ops; i++) {
+        numbers[i] %= 10*n_ops;         // limit keys to 10 times the number of operations
+    }
+
+    // precompute operations as percentage 0-100
+    int *operations = (int*)malloc(sizeof(int)*n_ops);
+    random_array(operations, n_ops);
+    for (i = 0; i < n_ops; i++) {
+        operations[i] %= 100;
+    }
+
+    printf("Running random throughput benchmark with %d threads...\n", t);
+    printf("Type \tTime (ms) \tTotal ops \tThroughput (Kops/s)\n");
+
+    double tic, toc;
+    #pragma omp single
+    {
+        int ops = 0;
+
+        tic = omp_get_wtime();
+        for (i = 0; i < n_ops; i++) {
+            if (operations[i] < percent_adds) {
+                add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+                INC(ops);
+            } else if (operations[i] < percent_adds+percent_rems) {
+                remove_skip_list_seq(&slist_seq, numbers[i]);
+                INC(ops);
+            } else {
+                contains_skip_list_seq(&slist_seq, numbers[i]);
+                INC(ops);
+            }
+        }
+        toc = omp_get_wtime();
+        tops += ops;
+    }
+    exec_time = toc-tic;
+    printf("SEQ \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    tops = 0;
+
+    #pragma omp parallel num_threads(t)
+    {
+        int ops = 0;
+
+        #pragma omp barrier
+        tic = omp_get_wtime();
+        #pragma omp for
+        for (i = 0; i < n_ops; i++) {
+            if (operations[i] < percent_adds) {
+                add_skip_list_l(&slist_l, numbers[i], numbers[i]);
+                INC(ops);
+            } else if (operations[i] < percent_adds+percent_rems) {
+                remove_skip_list_l(&slist_l, numbers[i]);
+                INC(ops);
+            } else {
+                contains_skip_list_l(&slist_l, numbers[i]);
+                INC(ops);
+            }
+        }
+        toc = omp_get_wtime();
+        tops += ops;
+    }
+    exec_time = toc-tic;
+    printf("LOCK \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    tops = 0;
+
+    #pragma omp parallel num_threads(t)
+    {
+        int ops = 0;
+
+        #pragma omp barrier
+        tic = omp_get_wtime();
+        #pragma omp for
+        for (i = 0; i < n_ops; i++) {
+            if (operations[i] < percent_adds) {
+                add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
+                INC(ops);
+            } else if (operations[i] < percent_adds+percent_rems) {
+                remove_skip_list_lfree(&slist_lfree, numbers[i]);
+                INC(ops);
+            } else {
+                contains_skip_list_lfree(&slist_lfree, numbers[i]);
+                INC(ops);
+            }
+        }
+        toc = omp_get_wtime();
+        tops += ops;
+
+        #ifdef COUNTERS
+        adds += slist_lfree.adds;
+        rems += slist_lfree.rems;
+        cons += slist_lfree.cons;
+        trav += slist_lfree.trav;
+        fail += slist_lfree.fail;
+        rtry += slist_lfree.rtry;
+        #endif
+    }
+    exec_time = toc-tic;
+    printf("LFREE \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+
+    free(numbers);
+}
+
+bench_result benchmark_separate(int times, int max_level, int t) {
+    bench_result result;
     double tic, toc;
 
     Skip_list_seq slist_seq;
@@ -100,6 +238,9 @@ struct bench_result small_bench(int t, int times, int max_level) {
     int* numbers = (int*)malloc(sizeof(int)*times);
     tic = omp_get_wtime();
     random_array(numbers, times);
+    for (int i = 0; i < times; i++) {
+        numbers[i] %= 10*times;         // limit keys to 10 times the number of operations
+    }
     toc = omp_get_wtime();
     // printf("Generating random numbers took: %fs\n", toc - tic);
 
@@ -244,6 +385,22 @@ struct bench_result small_bench(int t, int times, int max_level) {
     free(numbers);
 
     return result;
+}
+
+bench_result small_bench(int t, int times, int max_level) {
+
+    if (t <= 0) t = omp_get_max_threads();
+    if (max_level <= 0) max_level = 3;
+
+    omp_set_num_threads(t);
+
+    // benchmark_separate(times, max_level, t);
+    // benchmark_random(times, 10, 10, max_level, t);
+
+    benchmark_random(100000, 10, 10, max_level, t);     // temp. test with 100000 operations
+
+    
+    return (bench_result){.time_seq=0, .time_l=0, .time_lfree=0};
 }
 
 
