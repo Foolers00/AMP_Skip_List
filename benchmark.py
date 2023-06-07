@@ -15,9 +15,12 @@ class cBenchResult(ctypes.Structure):
     '''
     This has to match the returned struct in library.c
     '''
-    _fields_ = [("time_seq", ctypes.c_float),
-                ("time_l", ctypes.c_float),
-                ("time_lfree", ctypes.c_float) ]
+    _fields_ = [("time_seq", ctypes.c_double),
+                ("time_l", ctypes.c_double),
+                ("time_lfree", ctypes.c_double),
+                ("throughput_seq", ctypes.c_double),
+                ("throughput_seq", ctypes.c_double),
+                ("throughput_seq", ctypes.c_double) ]
 
 class Benchmark:
     '''

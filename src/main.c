@@ -15,9 +15,12 @@
 #endif
 
 typedef struct bench_result {
-    float time_seq;
-    float time_l;
-    float time_lfree;
+    double time_seq;
+    double time_l;
+    double time_lfree;
+    double throughput_seq;
+    double throughput_l;
+    double throughput_lfree;
     // struct counters reduced_counters;
 } bench_result;
 
@@ -55,7 +58,7 @@ int main(){
     /////// Test: Benchmarks ///////
     ////////////////////////////////
 
-    small_bench(16, 10000, 3);
+    small_bench(16, 100000, 3);
 
     return 0;
 }
@@ -89,7 +92,8 @@ void bench_lfree_add(Skip_list_lfree *slist, int numbers[], int num_len, int num
     }
 }
 
-void benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_level, int t) {    // TODO: add perfomance counters (implementation missing)
+bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_level, int t) {    // TODO: add perfomance counters (implementation missing)
+    bench_result result;
     int i;
     double exec_time;
     unsigned long long tops = 0;
@@ -152,6 +156,8 @@ void benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_lev
         tops += ops;
     }
     exec_time = toc-tic;
+    result.time_seq = exec_time;
+    result.throughput_seq = ((double)tops/exec_time)/1000;
     printf("SEQ \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
     tops = 0;
 
@@ -178,6 +184,8 @@ void benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_lev
         tops += ops;
     }
     exec_time = toc-tic;
+    result.time_l = exec_time;
+    result.throughput_l = ((double)tops/exec_time)/1000;
     printf("LOCK \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
     tops = 0;
 
@@ -213,9 +221,12 @@ void benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_lev
         #endif
     }
     exec_time = toc-tic;
+    result.time_lfree = exec_time;
+    result.throughput_lfree = ((double)tops/exec_time)/1000;
     printf("LFREE \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
 
     free(numbers);
+    return result;
 }
 
 bench_result benchmark_separate(int times, int max_level, int t) {
@@ -388,19 +399,17 @@ bench_result benchmark_separate(int times, int max_level, int t) {
 }
 
 bench_result small_bench(int t, int times, int max_level) {
+    bench_result br = {.time_seq=0, .time_l=0, .time_lfree=0, .throughput_seq=0, .throughput_l=0, .throughput_lfree=0};
 
     if (t <= 0) t = omp_get_max_threads();
     if (max_level <= 0) max_level = 3;
 
     omp_set_num_threads(t);
 
-    // benchmark_separate(times, max_level, t);
-    // benchmark_random(times, 10, 10, max_level, t);
-
-    benchmark_random(100000, 10, 10, max_level, t);     // temp. test with 100000 operations
-
+    // br = benchmark_separate(times, max_level, t);
+    br = benchmark_random(times, 10, 10, max_level, t);
     
-    return (bench_result){.time_seq=0, .time_l=0, .time_lfree=0};
+    return br;
 }
 
 
