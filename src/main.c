@@ -158,7 +158,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     exec_time = toc-tic;
     result.time_seq = exec_time;
     result.throughput_seq = ((double)tops/exec_time)/1000;
-    printf("SEQ \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("SEQ \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
     tops = 0;
 
     #pragma omp parallel num_threads(t)
@@ -186,7 +186,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     exec_time = toc-tic;
     result.time_l = exec_time;
     result.throughput_l = ((double)tops/exec_time)/1000;
-    printf("LOCK \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("LOCK \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
     tops = 0;
 
     #pragma omp parallel num_threads(t)
@@ -223,7 +223,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     exec_time = toc-tic;
     result.time_lfree = exec_time;
     result.throughput_lfree = ((double)tops/exec_time)/1000;
-    printf("LFREE \t%.2f \t\t%llu \t\t%.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("LFREE \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
 
     free(numbers);
     return result;
@@ -407,7 +407,7 @@ bench_result small_bench(int t, int times, int max_level) {
     omp_set_num_threads(t);
 
     // br = benchmark_separate(times, max_level, t);
-    br = benchmark_random(times, 10, 10, max_level, t);
+    br = benchmark_random(times, 25, 25, max_level, t);
     
     return br;
 }
