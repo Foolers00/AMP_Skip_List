@@ -75,6 +75,8 @@ typedef struct Skip_list_lfree{
     #endif
 }Skip_list_lfree;
 
+
+
 #define CAS(_a,_e,_d) atomic_compare_exchange_weak(_a,_e,_d)
 
 #define UNMARK_MASK ~1
@@ -110,10 +112,6 @@ bool init_random_lfree(Skip_list_lfree* slist, int num_of_threads);
 */
 unsigned int random_level_generator_lfree(Skip_list_lfree* slist);
 
-/*
-    Unlocks all the locks from prevs[0] upto prevs[level]
-*/
-void unlock_preds_lfree(Node_lfree* preds[], int level);
 
 // Melvin
 bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value);

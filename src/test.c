@@ -253,14 +253,20 @@ void test_lockfree_1(){
 
 
 void test_lockfree_2(){
-    for(int size = 1; size <= 1000000; size*=10 /* size *= 10 */ ){
+    int size = 1000;
+    int max_level = 3;
+    double tic, toc;
+    double seq_exec_time;
+    double par_exec_time;
+
+    for(int t = 2; t <= 16; t*=2 /* size *= 10 */ ){
         
         Skip_list_seq slist_seq;
         Skip_list_lfree slist_lfree;
         
         // init lists
-        init_skip_list_seq(&slist_seq, size);
-        init_skip_list_lfree(&slist_lfree, size, size);
+        init_skip_list_seq(&slist_seq, max_level);
+        init_skip_list_lfree(&slist_lfree, max_level, t);
         
         // init numbers array
         int* numbers = (int*)malloc(sizeof(int)*size);
@@ -270,24 +276,36 @@ void test_lockfree_2(){
         bool* contains_array = (bool*)malloc(sizeof(bool)*size);
 
         // add
-        for(int i = 0; i < size; i++){
-            add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
-        }
-
-        #pragma omp parallel num_threads(size)
+        #pragma omp single
         {
+            tic = omp_get_wtime();
+            for(int i = 0; i < size; i++){
+                add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+            }
+            toc = omp_get_wtime();
+        }
+        seq_exec_time = toc-tic;
+
+        #pragma omp parallel num_threads(t)
+        {   
+            tic = omp_get_wtime();
             #pragma omp for
             for(int i = 0; i < size; i++){
                 add_skip_list_lfree(&slist_lfree, numbers[i], numbers[i]);
             }
+            toc = omp_get_wtime();
         }
-        printf("Extensive test (%i Threads): Add: ", size);
+        par_exec_time = toc-tic;
+
+        printf("Extensive test (%i Threads): Add: ", t);
         
         // add compare 
         if(!compare_results_lfree(&slist_seq, &slist_lfree)){
             printf("\nTest failed\n");
             break;
         }
+
+        printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
 
         // remove
         for(int i = 0; i < size; i++){
@@ -296,7 +314,7 @@ void test_lockfree_2(){
             }
         }
 
-        #pragma omp parallel num_threads(size)
+        #pragma omp parallel num_threads(t)
         {
             #pragma omp for
             for(int i = 0; i < size; i++){
@@ -305,7 +323,7 @@ void test_lockfree_2(){
                 }
             }
         }
-        printf("Extensive test (%i Threads): Remove: ", size);
+        printf("Extensive test (%i Threads): Remove: ", t);
 
         // remove compare 
         if(!compare_results_lfree(&slist_seq, &slist_lfree)){
@@ -316,9 +334,9 @@ void test_lockfree_2(){
         
         // contains
 
-        printf("Extensive test (%i Threads): Contains: ", size);
+        printf("Extensive test (%i Threads): Contains: ", t);
 
-        #pragma omp parallel num_threads(size)
+        #pragma omp parallel num_threads(t)
         {
             #pragma omp for
             for(int i = 0; i < size; i++){
@@ -340,6 +358,124 @@ void test_lockfree_2(){
         // free
         free_skip_list_seq(&slist_seq);
         free_skip_list_lfree(&slist_lfree);
+    }
+
+    _out:;
+}
+
+
+/////////////////////////////////////////
+// Test: lock free skip list improved ///
+////////////////////////////////////////
+
+
+
+void test_lockfree_improved_1(){
+    int size = 10000;
+    int max_level = 3;
+    double tic, toc;
+    double seq_exec_time;
+    double par_exec_time;
+
+    for(int t = 2; t <= 2; t*=2 /* size *= 10 */ ){
+        
+        Skip_list_seq slist_seq;
+        Skip_list_lfree_improved slist_lfree_improved;
+        
+        // init lists
+        init_skip_list_seq(&slist_seq, max_level);
+        init_skip_list_lfree_improved(&slist_lfree_improved, max_level, t);
+        
+        // init numbers array
+        int* numbers = (int*)malloc(sizeof(int)*size);
+        random_array(numbers, size);
+
+        // contains array
+        bool* contains_array = (bool*)malloc(sizeof(bool)*size);
+
+        // add
+        #pragma omp single
+        {   
+            tic = omp_get_wtime();
+            for(int i = 0; i < size; i++){
+                add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+            }
+            toc = omp_get_wtime();
+        }
+        seq_exec_time = toc-tic;
+
+        #pragma omp parallel num_threads(t)
+        {
+            tic = omp_get_wtime();
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                add_skip_list_lfree_improved(&slist_lfree_improved, numbers[i], numbers[i]);
+            }
+            toc = omp_get_wtime();
+        }
+        par_exec_time = toc-tic;
+
+        printf("Extensive test (%i Threads): Add: ", t);
+        
+        // add compare 
+        if(!compare_results_lfree_improved(&slist_seq, &slist_lfree_improved)){
+            printf("\nTest failed\n");
+            break;
+        }
+
+        printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
+
+        // remove
+        for(int i = 0; i < size; i++){
+            if(numbers[i]%2 == 0){
+                remove_skip_list_seq(&slist_seq, numbers[i]);
+            }
+        }
+
+        #pragma omp parallel num_threads(t)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                if(numbers[i]%2 == 0){
+                    remove_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
+                }
+            }
+        }
+        printf("Extensive test (%i Threads): Remove: ", t);
+
+        // remove compare 
+        if(!compare_results_lfree_improved(&slist_seq, &slist_lfree_improved)){
+            printf("\nTest failed\n");
+            break;
+        }
+
+        
+        // contains
+
+        printf("Extensive test (%i Threads): Contains: ", t);
+
+        #pragma omp parallel num_threads(t)
+        {
+            #pragma omp for
+            for(int i = 0; i < size; i++){
+                contains_array[i] = contains_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
+            }
+        }
+
+        for(int i = 0; i<size; i++){
+            if(contains_array[i] != contains_skip_list_seq(&slist_seq, numbers[i])){
+                printf("Comparison Failed: %s and %s are not the same.\n", !contains_array[i] ? "true" : "false", 
+                contains_array[i] ? "true" : "false");
+                goto _out;
+            }
+        }
+
+        printf("Comparison Succeeded\n\n");
+
+
+        // free
+        free_skip_list_seq(&slist_seq);
+        free_skip_list_lfree_improved(&slist_lfree_improved);
     }
 
     _out:;
@@ -434,6 +570,40 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
     }   
 
     if (node_seq->nexts[0] || node_lfree->nexts[0]) {
+        printf("Comparison Failed: Lists are not the same length\n");
+        return false;
+    }
+
+    printf("Comparison Succeeded\n");
+    return true;
+}
+
+
+
+bool compare_results_lfree_improved(Skip_list_seq* slist_seq, Skip_list_lfree_improved* slist_lfree_improved){
+    Node_seq* node_seq;
+    Node_lfree_improved* node_lfree_improved;
+
+    node_seq = slist_seq->header->nexts[0];
+    node_lfree_improved = getpointer_improved(slist_lfree_improved->header->nexts[0]);
+
+    while (node_seq->nexts[0] && node_lfree_improved->nexts[0]) {
+   
+        if(ismarked_improved(node_lfree_improved->nexts[0])){
+            node_lfree_improved = getpointer_improved(node_lfree_improved->nexts[0]);
+            continue;
+        }
+        if (node_seq->key != node_lfree_improved->key) {
+            printf("Comparison Failed: %d and %d are not the same.\n",
+                    node_seq->key, node_lfree_improved->key);
+            return false;
+        }
+        node_seq = node_seq->nexts[0];
+        node_lfree_improved = getpointer_improved(node_lfree_improved->nexts[0]);
+          
+    }   
+
+    if (node_seq->nexts[0] || node_lfree_improved->nexts[0]) {
         printf("Comparison Failed: Lists are not the same length\n");
         return false;
     }

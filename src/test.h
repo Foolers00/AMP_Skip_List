@@ -14,6 +14,12 @@
 #endif
 
 
+#ifndef SKIP_LIST_LOCK_FREE_IMPROVED
+#define SKIP_LIST_LOCK_FREE_IMPROVED
+#include "skip_list_lockf_improved.h"
+#endif
+
+
 
 //////////////////////////////// 
 // Test: sequential skip list //
@@ -36,6 +42,11 @@ void test_lockfree_1();
 
 void test_lockfree_2();
 
+////////////////////////////////
+// Test: lock free skip list ///
+////////////////////////////////
+
+void test_lockfree_improved_1();
 
 ////////////////////////////////
 // Test: additional methods ////
@@ -57,6 +68,9 @@ bool compare_results_l(Skip_list_seq* slist_seq, Skip_list_l* slist_l);
     is printed out otherwise success message is printed out
 */
 bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfree);
+
+
+bool compare_results_lfree_improved(Skip_list_seq* slist_seq, Skip_list_lfree_improved* slist_lfree_improved);
 
 
 

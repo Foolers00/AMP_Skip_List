@@ -53,12 +53,18 @@ int main(){
 
     //test_lockfree_2();
 
+    /////////////////////////////////////////
+    // Test: lock free skip list improved ///
+    ////////////////////////////////////////
+
+    //test_lockfree_improved_1();
+
 
     ////////////////////////////////
     /////// Test: Benchmarks ///////
     ////////////////////////////////
 
-    small_bench(16, 100000, 3);
+    //small_bench(16, 100000, 3);
 
     return 0;
 }
