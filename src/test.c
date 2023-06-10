@@ -377,7 +377,7 @@ void test_lockfree_improved_1(){
     double seq_exec_time;
     double par_exec_time;
 
-    for(int t = 2; t <= 2; t*=2 /* size *= 10 */ ){
+    for(int t = 2; t <= 16; t*=2 /* size *= 10 */ ){
         
         Skip_list_seq slist_seq;
         Skip_list_lfree_improved slist_lfree_improved;

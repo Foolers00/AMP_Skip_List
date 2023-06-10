@@ -306,14 +306,27 @@ int find_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, Node
                 succ = getpointer_improved(curr->nexts[l]);
                 marked = ismarked_improved(curr->nexts[l]);
                 while(marked){
+                    ////////////
+                    // old
+                    // if(!CAS_improved(&pred->nexts[l], &curr, succ)){
+                    //     INC(slist->fail);
+                    //     goto _continue;
+                    // }
+                    
+                    ////////////
+                    // new
                     if(!CAS_improved(&pred->nexts[l], &curr, succ)){
                         INC(slist->fail);
-                        goto _continue;
+                        if(ismarked_improved(pred->nexts[l])){
+                            goto _continue;
+                        }
                     }
                     curr = getpointer_improved(pred->nexts[l]);
                     succ = getpointer_improved(curr->nexts[l]);
                     marked = ismarked_improved(curr->nexts[l]);
+                    ///////////
                 }
+    
                 if(curr->key < key){
                     pred = curr; curr = succ;
                 }else{

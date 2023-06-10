@@ -57,7 +57,7 @@ int main(){
     // Test: lock free skip list improved ///
     ////////////////////////////////////////
 
-    //test_lockfree_improved_1();
+    test_lockfree_improved_1();
 
 
     ////////////////////////////////
