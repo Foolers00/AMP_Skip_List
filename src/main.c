@@ -46,7 +46,7 @@ int main(){
     /////// Test: Benchmarks ///////
     ////////////////////////////////
 
-    small_bench(16, 10000, 3);
+    small_bench(16, 1000000, 3);
 
     return 0;
 }
@@ -112,6 +112,7 @@ struct bench_result small_bench(int t, int times, int max_level) {
     tic = omp_get_wtime();
     for (int i = 0; i < times; i++) {
         add_skip_list_seq(&slist_seq, numbers[i], numbers[i]);
+        printf("Added node: %d\n", i);
     }
     toc = omp_get_wtime();
 

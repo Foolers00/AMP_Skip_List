@@ -5,7 +5,7 @@
 
 \begin{document}
   \begin{tikzpicture}
-    \begin{axis}[title={Add item operations},              % Title of the graph
+    \begin{axis}[title={Contains item operations: size 10000},              % Title of the graph
                  xtick={1,2,4,8,16,32,64,128,256},  % The ticks on the x-axis
                  xlabel={number of threads},        % Label of the x-axis
                  ylabel={time in [ms]},             % Label of the y-axis
@@ -19,11 +19,11 @@
       % \addplot table {\DATAPATH/avg/smallbench_100_l.data};
       % \addlegendentry{100 adds}
 
-      \addplot table {\DATAPATH/avg/smallbench_10000_3_seq.data};
+      \addplot table {\DATAPATH/avg/smallbench_10000_10_seq.data};
       \addlegendentry{$10^4$ seq adds}
-      \addplot table {\DATAPATH/avg/smallbench_10000_3_l.data};
+      \addplot table {\DATAPATH/avg/smallbench_10000_10_l.data};
       \addlegendentry{$10^4$ lock adds}
-      \addplot table {\DATAPATH/avg/smallbench_10000_3_lfree.data};
+      \addplot table {\DATAPATH/avg/smallbench_10000_10_lfree.data};
       \addlegendentry{$10^4$ lock free adds}
 
     \end{axis}
