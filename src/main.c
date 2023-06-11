@@ -18,9 +18,11 @@ typedef struct bench_result {
     double time_seq;
     double time_l;
     double time_lfree;
+    double time_lfree_improved;
     double throughput_seq;
     double throughput_l;
     double throughput_lfree;
+    double throughput_lfree_improved;
     // struct counters reduced_counters;
 } bench_result;
 
@@ -57,7 +59,7 @@ int main(){
     // Test: lock free skip list improved ///
     ////////////////////////////////////////
 
-    test_lockfree_improved_1();
+    // test_lockfree_improved_1();
 
 
     ////////////////////////////////
@@ -117,11 +119,13 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     Skip_list_seq slist_seq;
     Skip_list_l slist_l;
     Skip_list_lfree slist_lfree;
+    Skip_list_lfree_improved slist_lfree_improved;
 
     // init lists
     init_skip_list_seq(&slist_seq, max_level);
     init_skip_list_l(&slist_l, max_level, t);
     init_skip_list_lfree(&slist_lfree, max_level, t);
+    init_skip_list_lfree_improved(&slist_lfree_improved, max_level, t);
 
     // init numbers array
     int *numbers = (int*)malloc(sizeof(int)*n_ops);
@@ -230,6 +234,35 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     result.time_lfree = exec_time;
     result.throughput_lfree = ((double)tops/exec_time)/1000;
     printf("LFREE \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    tops = 0;
+
+
+    #pragma omp parallel num_threads(t)
+    {
+        int ops = 0;
+
+        #pragma omp barrier
+        tic = omp_get_wtime();
+        #pragma omp for
+        for (i = 0; i < n_ops; i++) {
+            if (operations[i] < percent_adds) {
+                add_skip_list_lfree_improved(&slist_lfree_improved, numbers[i], numbers[i]);
+                INC(ops);
+            } else if (operations[i] < percent_adds+percent_rems) {
+                remove_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
+                INC(ops);
+            } else {
+                contains_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
+                INC(ops);
+            }
+        }
+        toc = omp_get_wtime();
+        tops += ops;
+    }
+    exec_time = toc-tic;
+    result.time_lfree_improved = exec_time;
+    result.throughput_lfree_improved = ((double)tops/exec_time)/1000;
+    printf("LFREE++\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
 
     free(numbers);
     return result;

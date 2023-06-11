@@ -11,7 +11,7 @@ BUILD_DIR = build
 DATA_DIR = data
 INCLUDES = inc
 
-OBJECTS = $(NAME).o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o
+OBJECTS = $(NAME).o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o
 
 
 all: $(BUILD_DIR) $(NAME) $(NAME).so
@@ -49,6 +49,12 @@ levels-plot:
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lock_levels_plot.tex}"'
 	@echo "============================================"
 	@echo "Created plots/lock_levels_plot.pdf"
+
+throughput-plot:
+	@echo "Plotting small-bench (levels) results ..."
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{throughput_plot.tex}"'
+	@echo "============================================"
+	@echo "Created plots/throughput_plot.pdf"
 
 small-plot: 
 	@echo "Plotting small-bench results ..."

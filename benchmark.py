@@ -18,9 +18,11 @@ class cBenchResult(ctypes.Structure):
     _fields_ = [("time_seq", ctypes.c_double),
                 ("time_l", ctypes.c_double),
                 ("time_lfree", ctypes.c_double),
+                ("time_lfree_improved", ctypes.c_double),
                 ("throughput_seq", ctypes.c_double),
-                ("throughput_seq", ctypes.c_double),
-                ("throughput_seq", ctypes.c_double) ]
+                ("throughput_l", ctypes.c_double),
+                ("throughput_lfree", ctypes.c_double),
+                ("throughput_lfree_improved", ctypes.c_double) ]
 
 class Benchmark:
     '''
@@ -43,6 +45,7 @@ class Benchmark:
         self.data_seq = {}
         self.data_l = {}
         self.data_lfree = {}
+        self.data_lfree_improved = {}
 
     def run(self):
         '''
@@ -55,15 +58,17 @@ class Benchmark:
         print(f"Starting Benchmark run at {self.now}")
 
         for x in self.xrange:
-            tmp = [[],[],[]]
+            tmp = [[],[],[],[]]
             for r in range(0, self.repetitions_per_point):
                 result = self.bench_function( x, *self.parameters )
-                tmp[0].append(result.time_seq*1000)
-                tmp[1].append(result.time_l*1000)
-                tmp[2].append(result.time_lfree*1000)
+                tmp[0].append((result.time_seq*1000, result.throughput_seq))
+                tmp[1].append((result.time_l*1000, result.throughput_l))
+                tmp[2].append((result.time_lfree*1000, result.throughput_lfree))
+                tmp[3].append((result.time_lfree_improved*1000, result.throughput_lfree_improved))
             self.data_seq[x] = tmp[0]
             self.data_l[x] = tmp[1]
             self.data_lfree[x] = tmp[2]
+            self.data_lfree_improved[x] = tmp[3]
 
     def write_avg_data(self):
         '''
@@ -77,23 +82,60 @@ class Benchmark:
             os.makedirs(f"{self.basedir}/data/{self.now}/avg")
         except FileExistsError:
             pass
+        try:
+            os.makedirs(f"{self.basedir}/data/{self.now}/throughput")
+        except FileExistsError:
+            pass
         with open(f"{self.basedir}/data/{self.now}/avg/{self.name}_seq.data", "w")\
                 as datafile:
             datafile.write(f"x datapoint\n")
             for x, box in self.data_seq.items():
-                datafile.write(f"{x} {sum(box)/len(box)}\n")
+                datafile.write(f"{x} {sum([data[0] for data in box])/len(box)}\n")
             print("Data written to: " + datafile.name)
+        with open(f"{self.basedir}/data/{self.now}/throughput/{self.name}_seq.data", "w")\
+                as datafile:
+            datafile.write(f"x datapoint\n")
+            for x, box in self.data_seq.items():
+                datafile.write(f"{x} {sum([data[1] for data in box])/len(box)}\n")
+            print("Data written to: " + datafile.name)
+
         with open(f"{self.basedir}/data/{self.now}/avg/{self.name}_l.data", "w")\
                 as datafile:
             datafile.write(f"x datapoint\n")
             for x, box in self.data_l.items():
-                datafile.write(f"{x} {sum(box)/len(box)}\n")
+                datafile.write(f"{x} {sum([data[0] for data in box])/len(box)}\n")
             print("Data written to: " + datafile.name)
+        with open(f"{self.basedir}/data/{self.now}/throughput/{self.name}_l.data", "w")\
+                as datafile:
+            datafile.write(f"x datapoint\n")
+            for x, box in self.data_l.items():
+                datafile.write(f"{x} {sum([data[1] for data in box])/len(box)}\n")
+            print("Data written to: " + datafile.name)
+
         with open(f"{self.basedir}/data/{self.now}/avg/{self.name}_lfree.data", "w")\
                 as datafile:
             datafile.write(f"x datapoint\n")
             for x, box in self.data_lfree.items():
-                datafile.write(f"{x} {sum(box)/len(box)}\n")
+                datafile.write(f"{x} {sum([data[0] for data in box])/len(box)}\n")
+            print("Data written to: " + datafile.name)
+        with open(f"{self.basedir}/data/{self.now}/throughput/{self.name}_lfree.data", "w")\
+                as datafile:
+            datafile.write(f"x datapoint\n")
+            for x, box in self.data_lfree.items():
+                datafile.write(f"{x} {sum([data[1] for data in box])/len(box)}\n")
+            print("Data written to: " + datafile.name)
+
+        with open(f"{self.basedir}/data/{self.now}/avg/{self.name}_lfree_improved.data", "w")\
+                as datafile:
+            datafile.write(f"x datapoint\n")
+            for x, box in self.data_lfree_improved.items():
+                datafile.write(f"{x} {sum([data[0] for data in box])/len(box)}\n")
+            print("Data written to: " + datafile.name)
+        with open(f"{self.basedir}/data/{self.now}/throughput/{self.name}_lfree_improved.data", "w")\
+                as datafile:
+            datafile.write(f"x datapoint\n")
+            for x, box in self.data_lfree_improved.items():
+                datafile.write(f"{x} {sum([data[1] for data in box])/len(box)}\n")
             print("Data written to: " + datafile.name)
 
 def benchmark():
@@ -115,23 +157,19 @@ def benchmark():
     # just one parameter, we cannot write (1000) because that would not parse
     # as a tuple, instead python understands a trailing comma as a tuple with
     # just one entry.
-    # smallbench_100 = Benchmark(binary.small_bench, (100,3), 3,
-    #                            num_threads, basedir, "smallbench_100")
-    smallbench_10000_3 = Benchmark(binary.small_bench, (10000,3), 3,
+    smallbench_10000_3 = Benchmark(binary.small_bench, (20000,3), 3,
                                num_threads, basedir, "smallbench_10000_3", curr_time)
-    smallbench_10000_5 = Benchmark(binary.small_bench, (10000,5), 3,
+    smallbench_10000_5 = Benchmark(binary.small_bench, (20000,5), 3,
                                num_threads, basedir, "smallbench_10000_5", curr_time)
-    smallbench_10000_10 = Benchmark(binary.small_bench, (10000,10), 3,
+    smallbench_10000_10 = Benchmark(binary.small_bench, (20000,10), 3,
                                num_threads, basedir, "smallbench_10000_10", curr_time)
 
-    # smallbench_100.run()
-    # smallbench_100.write_avg_data()
     smallbench_10000_3.run()
     smallbench_10000_3.write_avg_data()
-    smallbench_10000_5.run()
-    smallbench_10000_5.write_avg_data()
-    smallbench_10000_10.run()
-    smallbench_10000_10.write_avg_data()
+    # smallbench_10000_5.run()
+    # smallbench_10000_5.write_avg_data()
+    # smallbench_10000_10.run()
+    # smallbench_10000_10.write_avg_data()
 
 if __name__ == "__main__":
     benchmark()
