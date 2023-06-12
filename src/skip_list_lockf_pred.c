@@ -386,12 +386,12 @@ int find_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, Node_lfree_p
             ////////////
             // new_2
             if(preds_temp){
-                pred_temp = getpointer_pred(preds_temp[l]);
-                while(ismarked_pred(preds_temp[l]) && ismarked_pred(pred_temp->nexts[l])){
-                    pred_temp = getpointer_pred(preds_temp[l]);
-                    preds_temp[l] = pred_temp->preds[l];
+                pred_temp = preds_temp[l];
+                while(ismarked_pred(pred_temp)){
+                    pred_temp = getpointer_pred(pred_temp);
+                    pred_temp = pred_temp->preds[l];
                 }
-                pred = preds_temp[l];
+                pred = pred_temp;
             }
             else{
                 pred = slist->header;
