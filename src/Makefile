@@ -2,8 +2,8 @@
 CC = gcc -g -Wall
 
 
-all: main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o
-	$(CC) -fopenmp -o prog main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o
+all: main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o skip_list_lockf_pred.o
+	$(CC) -fopenmp -o prog main.o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o skip_list_lockf_pred.o
 
 
 main.o: main.c test.h
@@ -24,6 +24,9 @@ skip_list_lockf.o: skip_list_lockf.c skip_list_lockf.h
 
 skip_list_lockf_improved.o: skip_list_lockf_improved.c skip_list_lockf_improved.h
 	$(CC) -fopenmp -c skip_list_lockf_improved.c
+	
+skip_list_lockf_pred.o: skip_list_lockf_pred.c skip_list_lockf_pred.h
+	$(CC) -fopenmp -c skip_list_lockf_pred.c
 
 
 test.o: test.c test.h skip_list_seq.h skip_list_lock.h skip_list_lockf.h

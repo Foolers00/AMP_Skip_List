@@ -20,6 +20,12 @@
 #endif
 
 
+#ifndef SKIP_LIST_LOCKF_PRED
+#define SKIP_LIST_LOCKF_PRED
+#include "skip_list_lockf_pred.h"
+#endif
+
+
 
 //////////////////////////////// 
 // Test: sequential skip list //
@@ -42,11 +48,17 @@ void test_lockfree_1();
 
 void test_lockfree_2();
 
-////////////////////////////////
-// Test: lock free skip list ///
-////////////////////////////////
+/////////////////////////////////////////
+// Test: lock free skip list improved ///
+////////////////////////////////////////
 
 void test_lockfree_improved_1();
+
+/////////////////////////////////////
+// Test: lock free skip list pred ///
+/////////////////////////////////////
+
+void test_lockfree_pred_1();
 
 ////////////////////////////////
 // Test: additional methods ////
@@ -71,6 +83,8 @@ bool compare_results_lfree(Skip_list_seq* slist_seq, Skip_list_lfree* slist_lfre
 
 
 bool compare_results_lfree_improved(Skip_list_seq* slist_seq, Skip_list_lfree_improved* slist_lfree_improved);
+
+bool compare_results_lfree_pred(Skip_list_seq* slist_seq, Skip_list_lfree_pred* slist_lfree_pred);
 
 
 
