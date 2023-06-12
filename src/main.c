@@ -3,6 +3,7 @@
 #include "test.h"
 #endif
 
+// #define VERBOSE
 // #undef COUNTERS
 
 #ifdef COUNTERS
@@ -19,10 +20,12 @@ typedef struct bench_result {
     double time_l;
     double time_lfree;
     double time_lfree_improved;
+    double time_lfree_pred;
     double throughput_seq;
     double throughput_l;
     double throughput_lfree;
     double throughput_lfree_improved;
+    double throughput_lfree_pred;
     // struct counters reduced_counters;
 } bench_result;
 
@@ -126,12 +129,14 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     Skip_list_l slist_l;
     Skip_list_lfree slist_lfree;
     Skip_list_lfree_improved slist_lfree_improved;
+    Skip_list_lfree_pred slist_lfree_pred;
 
     // init lists
     init_skip_list_seq(&slist_seq, max_level);
     init_skip_list_l(&slist_l, max_level, t);
     init_skip_list_lfree(&slist_lfree, max_level, t);
     init_skip_list_lfree_improved(&slist_lfree_improved, max_level, t);
+    init_skip_list_lfree_pred(&slist_lfree_pred, max_level, t);
 
     // init numbers array
     int *numbers = (int*)malloc(sizeof(int)*n_ops);
@@ -147,8 +152,8 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         operations[i] %= 100;
     }
 
-    printf("Running random throughput benchmark with %d threads...\n", t);
-    printf("Type \tTime (ms) \tTotal ops \tThroughput (Kops/s)\n");
+    printf("=====Running random throughput benchmark with %d threads and %d levels=====\n", t, max_level);
+    printf("Type \t\tTime (ms) \tTotal ops \tThroughput (Kops/s)\n");
 
     double tic, toc;
     #pragma omp single
@@ -170,12 +175,26 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         }
         toc = omp_get_wtime();
         tops += ops;
+
+        #ifdef COUNTERS
+        adds += slist_seq.adds;
+        rems += slist_seq.rems;
+        cons += slist_seq.cons;
+        trav += slist_seq.trav;
+        fail += slist_seq.fail;
+        rtry += slist_seq.rtry;
+        #endif
     }
     exec_time = toc-tic;
     result.time_seq = exec_time;
     result.throughput_seq = ((double)tops/exec_time)/1000;
-    printf("SEQ \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("SEQ \t\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    #ifdef VERBOSE
+    printf(" ↳ adds=%llu rems=%llu cons=%llu trav=%llu fail=%llu rtry=%llu\n",
+        adds, rems, cons, trav, fail, rtry);
+    #endif
     tops = 0;
+    adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
     #pragma omp parallel num_threads(t)
     {
@@ -197,13 +216,29 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
             }
         }
         toc = omp_get_wtime();
+        #pragma omp barrier
         tops += ops;
+
+        #ifdef COUNTERS
+        adds += slist_l.adds;
+        rems += slist_l.rems;
+        cons += slist_l.cons;
+        trav += slist_l.trav;
+        fail += slist_l.fail;
+        rtry += slist_l.rtry;
+        #endif
     }
     exec_time = toc-tic;
     result.time_l = exec_time;
     result.throughput_l = ((double)tops/exec_time)/1000;
-    printf("LOCK \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("LOCK \t\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    #ifdef VERBOSE
+    printf(" ↳ adds=%llu rems=%llu cons=%llu trav=%llu fail=%llu rtry=%llu\n",
+        adds, rems, cons, trav, fail, rtry);
+    #endif
     tops = 0;
+    adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+
 
     #pragma omp parallel num_threads(t)
     {
@@ -225,6 +260,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
             }
         }
         toc = omp_get_wtime();
+        #pragma omp barrier
         tops += ops;
 
         #ifdef COUNTERS
@@ -239,8 +275,13 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     exec_time = toc-tic;
     result.time_lfree = exec_time;
     result.throughput_lfree = ((double)tops/exec_time)/1000;
-    printf("LFREE \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("LFREE \t\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    #ifdef VERBOSE
+    printf(" ↳ adds=%llu rems=%llu cons=%llu trav=%llu fail=%llu rtry=%llu\n",
+        adds, rems, cons, trav, fail, rtry);
+    #endif
     tops = 0;
+    adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
 
     #pragma omp parallel num_threads(t)
@@ -263,12 +304,72 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
             }
         }
         toc = omp_get_wtime();
+        #pragma omp barrier
         tops += ops;
+
+        #ifdef COUNTERS
+        adds += slist_lfree_improved.adds;
+        rems += slist_lfree_improved.rems;
+        cons += slist_lfree_improved.cons;
+        trav += slist_lfree_improved.trav;
+        fail += slist_lfree_improved.fail;
+        rtry += slist_lfree_improved.rtry;
+        #endif
     }
     exec_time = toc-tic;
     result.time_lfree_improved = exec_time;
     result.throughput_lfree_improved = ((double)tops/exec_time)/1000;
-    printf("LFREE++\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    printf("LFREE++\t\t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    #ifdef VERBOSE
+    printf(" ↳ adds=%llu rems=%llu cons=%llu trav=%llu fail=%llu rtry=%llu\n",
+        adds, rems, cons, trav, fail, rtry);
+    #endif
+    tops = 0;
+    adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+
+
+    #pragma omp parallel num_threads(t)
+    {
+        int ops = 0;
+
+        #pragma omp barrier
+        tic = omp_get_wtime();
+        #pragma omp for
+        for (i = 0; i < n_ops; i++) {
+            if (operations[i] < percent_adds) {
+                add_skip_list_lfree_pred(&slist_lfree_pred, numbers[i], numbers[i]);
+                INC(ops);
+            } else if (operations[i] < percent_adds+percent_rems) {
+                remove_skip_list_lfree_pred(&slist_lfree_pred, numbers[i]);
+                INC(ops);
+            } else {
+                contains_skip_list_lfree_pred(&slist_lfree_pred, numbers[i]);
+                INC(ops);
+            }
+        }
+        toc = omp_get_wtime();
+        #pragma omp barrier
+        tops += ops;
+
+        #ifdef COUNTERS
+        adds += slist_lfree_pred.adds;
+        rems += slist_lfree_pred.rems;
+        cons += slist_lfree_pred.cons;
+        trav += slist_lfree_pred.trav;
+        fail += slist_lfree_pred.fail;
+        rtry += slist_lfree_pred.rtry;
+        #endif
+    }
+    exec_time = toc-tic;
+    result.time_lfree_pred = exec_time;
+    result.throughput_lfree_pred = ((double)tops/exec_time)/1000;
+    printf("LFREE++ PRED \t%7.2f \t%llu \t\t%7.2f\n", exec_time*1000, tops, ((double)tops/exec_time)/1000);
+    #ifdef VERBOSE
+    printf(" ↳ adds=%llu rems=%llu cons=%llu trav=%llu fail=%llu rtry=%llu\n",
+        adds, rems, cons, trav, fail, rtry);
+    #endif
+    tops = 0;
+    adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
     free(numbers);
     return result;
@@ -445,7 +546,9 @@ bench_result benchmark_separate(int times, int max_level, int t) {
 }
 
 bench_result small_bench(int t, int times, int max_level) {
-    bench_result br = {.time_seq=0, .time_l=0, .time_lfree=0, .throughput_seq=0, .throughput_l=0, .throughput_lfree=0};
+    bench_result br = 
+        {.time_seq=0, .time_l=0, .time_lfree=0, .time_lfree_improved=0, .time_lfree_pred=0, 
+        .throughput_seq=0, .throughput_l=0, .throughput_lfree=0, .throughput_lfree_improved=0, .throughput_lfree_pred=0};
 
     if (t <= 0) t = omp_get_max_threads();
     if (max_level <= 0) max_level = 3;
