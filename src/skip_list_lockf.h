@@ -50,11 +50,6 @@
 #define FRACTION (1.0/2.0)
 #define COUNTERS
 
-#ifdef COUNTERS
-#define INC(_c) ((_c)++)
-#else
-#define INC(_c)
-#endif
 
 
 typedef struct Node_lfree{
@@ -71,6 +66,12 @@ typedef struct Skip_list_lfree{
     unsigned int* random_seeds;
 
     #ifdef COUNTERS
+    //adds: per level
+    //rems: per level
+    //cons: per level, how many nodes are traversed in the contains operation excluding marked nodes
+    //trav: per level, how many nodes are traversed in the find operation excluding marked nodes
+    //fail: number of failed CAS operations
+    //rtry: how many times did the find or add operation have to retraverse the list because of a failed CAS operation
     unsigned long long adds, rems, cons, trav, fail, rtry;
     #endif
 }Skip_list_lfree;

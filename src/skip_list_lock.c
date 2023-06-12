@@ -33,6 +33,15 @@ bool init_skip_list_l(Skip_list_l* slist, int max_level, int num_of_threads){
     slist->tail = tail;
     slist->max_level = max_level;
 
+    #ifdef COUNTERS
+    slist->adds = 0;
+    slist->rems = 0;
+    slist->cons = 0;
+    slist->trav = 0;
+    slist->fail = 0;
+    slist->rtry = 0;
+    #endif
+
     return true;
 
 }
@@ -131,6 +140,7 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
                 while(!found->fullylinked){}
                 return false;
             }
+            INC(slist->rtry);
             continue;
         }
 
@@ -146,12 +156,14 @@ bool add_skip_list_l(Skip_list_l* slist, int key, int value){
 
         if(!valid){
             unlock_preds_l(preds, highlock);
+            INC(slist->rtry);
             continue;
         }
 
         init_node_l(&new_node, key, value, level);
 
         for(int l = 0; l<=level; l++){
+            INC(slist->adds);
             new_node->nexts[l] = succs[l];
             preds[l]->nexts[l] = new_node;
         }
@@ -207,11 +219,13 @@ bool remove_skip_list_l(Skip_list_l* slist, int key) {
 
             if (!valid) {   // validation failed
                 unlock_preds_l(preds, highlock);
+                INC(slist->rtry);
                 continue;
             }
             
             // link out from top to bottom
             for (int l = victim_level; l >= 0; l--) {
+                INC(slist->rems);
                 preds[l]->nexts[l] = victim->nexts[l];
             }
 
@@ -308,6 +322,7 @@ int find_skip_list_l(Skip_list_l *slist, int key, Node_l * preds[], Node_l *succ
         while (key > curr->key) {
             pred = curr;
             curr = curr->nexts[l];
+            INC(slist->cons);
         }
         if (foundlevel == -1 && key == curr->key) {
             foundlevel = l; // found at level l

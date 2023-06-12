@@ -150,7 +150,9 @@ bool add_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, int 
             ////////////
             // new
             while(!CAS_improved(&pred->nexts[0], &succ, new_node)){
+                INC(slist->fail);
                 if(ismarked_improved(pred->nexts[0])){
+                    INC(slist->rtry);
                     goto restart_1;
                 }
                 succ = getpointer_improved(pred->nexts[0]);
@@ -161,6 +163,7 @@ bool add_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, int 
                 new_node->nexts[0] = succ;
             }
             ////////////
+            INC(slist->adds);
 
             for(int l = 1; l<=level; l++){
                 
@@ -189,7 +192,7 @@ bool add_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, int 
                     INC(slist->fail);
                     if(ismarked_improved(pred->nexts[0])){
                         find_skip_list_lfree_improved(slist, key, preds, succs);
-                        INC(slist->fail);
+                        INC(slist->rtry);
                         goto restart_2;
                     }
                     succ = getpointer_improved(pred->nexts[l]);
@@ -237,6 +240,7 @@ bool remove_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key) {
                     marked = ismarked_improved(rem_node->nexts[l]);
                     succ = getpointer_improved(rem_node->nexts[l]);
                 }
+                INC(slist->rems);
             }
 
             // level 0 list
@@ -318,6 +322,7 @@ int find_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, Node
                     if(!CAS_improved(&pred->nexts[l], &curr, succ)){
                         INC(slist->fail);
                         if(ismarked_improved(pred->nexts[l])){
+                            INC(slist->rtry);
                             goto _continue;
                         }
                     }
@@ -329,6 +334,7 @@ int find_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key, Node
     
                 if(curr->key < key){
                     pred = curr; curr = succ;
+                    INC(slist->trav);
                 }else{
                     break;
                 }

@@ -30,6 +30,15 @@ bool init_skip_list_seq(Skip_list_seq* slist, int max_level){
     slist->tail = tail;
     slist->max_level = max_level;
 
+    #ifdef COUNTERS
+    slist->adds = 0;
+    slist->rems = 0;
+    slist->cons = 0;
+    slist->trav = 0;
+    slist->fail = 0;
+    slist->rtry = 0;
+    #endif
+
     return true;
 }
 
@@ -76,6 +85,7 @@ bool add_skip_list_seq(Skip_list_seq* slist, int key, int value){
     for(int i = new_node->level; i >= 0; i--){
         new_node->nexts[i] = proto[i].curr;
         proto[i].pred->nexts[i] = new_node;
+        INC(slist->adds);
     }
     
     return true;
@@ -91,6 +101,7 @@ bool remove_skip_list_seq(Skip_list_seq* slist, int key){
     if(node){
         for(int i = node->level; i >= 0; i--){
             proto[i].pred->nexts[i] = node->nexts[i];
+            INC(slist->rems);
         }
         free_node_seq(node);
         return true;
@@ -118,7 +129,7 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]){
     proto[slist->max_level].curr = slist->tail;
     
     for(int i = slist->max_level; i >= 0; i--){
-        node = find_list_seq(i, key, &proto[i]);
+        node = find_list_seq(slist, i, key, &proto[i]);
         
         if(i != 0){
             proto[i-1].pred = proto[i].pred;
@@ -130,9 +141,10 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]){
 }
 
 
-Node_seq* find_list_seq(int level, int key, Window_seq* w){
+Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key, Window_seq* w){
 
     while(w->pred != w->curr && w->pred->nexts[level]->key < key){
+        INC(slist->cons);
         w->pred = w->pred->nexts[level];
     }
     w->curr = w->pred->nexts[level];

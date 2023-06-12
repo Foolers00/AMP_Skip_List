@@ -33,6 +33,13 @@
 #include <string.h>
 #endif
 
+#define COUNTERS
+
+#ifdef COUNTERS
+#define INC(_c) ((_c)++)
+#else
+#define INC(_c)
+#endif
 
 #define FRACTION (1.0/2.0)
 
@@ -53,6 +60,14 @@ typedef struct Skip_list_seq{
     Node_seq* header;
     Node_seq* tail;
     int max_level;
+    #ifdef COUNTERS
+    //adds: per level
+    //rems: per level
+    //cons: number of nodes traversed per level in a contains or find operation
+    //trav: same as cons in seq skiplist
+    //fail, rtry: not useful in seq skiplist
+    unsigned long long adds, rems, cons, trav, fail, rtry;
+    #endif
 }Skip_list_seq;
 
 
@@ -102,7 +117,7 @@ Node_seq* find_skip_list_seq(Skip_list_seq* slist, int key, Window_seq proto[]);
     it returns the node before it would insert the node with key
     a w double must be also given over to increase the search time,
 */
-Node_seq* find_list_seq(int level, int key, Window_seq* w);
+Node_seq* find_list_seq(Skip_list_seq* slist, int level, int key, Window_seq* w);
 
 /* 
     must be called before using function random_level_generator,

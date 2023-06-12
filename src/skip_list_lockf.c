@@ -134,8 +134,11 @@ bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value){
             pred = preds[0];
             succ = getpointer(succs[0]);
             if(!CAS(&pred->nexts[0], &succ, new_node)){
+                INC(slist->fail);
+                INC(slist->rtry);
                 continue;
             }
+            INC(slist->adds);
 
             for(int l = 1; l<=level; l++){
                 while(true){
@@ -148,6 +151,7 @@ bool add_skip_list_lfree(Skip_list_lfree* slist, int key, int value){
                     }
                     find_skip_list_lfree(slist, key, preds, succs);
                     INC(slist->fail);
+                    INC(slist->rtry);
                 }
             }
             return true;
@@ -178,6 +182,7 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
                     marked = ismarked(rem_node->nexts[l]);
                     succ = getpointer(rem_node->nexts[l]);
                 }
+                INC(slist->rems);
             }
 
             // level 0 list
@@ -249,6 +254,7 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
                 while(marked){
                     if(!CAS(&pred->nexts[l], &curr, succ)){
                         INC(slist->fail);
+                        INC(slist->rtry);
                         goto _continue;
                     }
                     curr = getpointer(pred->nexts[l]);
@@ -257,6 +263,7 @@ int find_skip_list_lfree(Skip_list_lfree* slist, int key, Node_lfree* preds[], N
                 }
                 if(curr->key < key){
                     pred = curr; curr = succ;
+                    INC(slist->trav);
                 }else{
                     break;
                 }

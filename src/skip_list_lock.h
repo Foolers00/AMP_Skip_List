@@ -42,6 +42,9 @@
 #include "skip_list_seq.h"
 #endif
 
+#define COUNTERS
+
+
 #define FRACTION (1.0/2.0)
 
 typedef struct Node_l{
@@ -60,6 +63,16 @@ typedef struct Skip_list_l{
     Node_l* tail;
     int max_level;
     unsigned int* random_seeds;
+    #ifdef COUNTERS
+    //adds: per level
+    //rems: per level
+    //cons: per level, how many nodes are traversed in the contains operation excluding marked nodes
+    //rtry: how many times did the find or add or remove operation have to retraverse the list, not directly comparable with rtry from lockfree
+    //trav: same as cons in seq skiplist
+    //fail: not useful for lock skiplist
+    unsigned long long adds, rems, cons, trav, fail, rtry;
+    unsigned long long adds, rems, cons, trav, fail, rtry;
+    #endif
 }Skip_list_l;
 
 
