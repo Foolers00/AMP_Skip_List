@@ -163,15 +163,20 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
             free_node_lfree_pred(new_node); 
             return false; 
         }
-        else{            
+        else{                
+
             for(int l = 0; l<=level; l++){
-                succ = succs[l];
-                new_node->nexts[l] = succ;
+                new_node->nexts[l] = succs[l];
+                ////////////
+                // old_2
+                ////////////
+                // new_2
+                new_node->preds[l] = preds[l];
+                ////////////
             }
             pred = preds[0];
             succ = getpointer_pred(succs[0]);
 
-            new_node->preds[0] = pred;
 
             while(!CAS_pred(&pred->nexts[0], &succ, new_node)){
                 INC(slist->fail);
@@ -180,7 +185,7 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
                     // old_2
                     ////////////
                     // new_2
-                    preds_temp = pred->preds;
+                    preds_temp = new_node->preds;
                     ////////////
                     goto restart_1;
                 }
@@ -199,7 +204,13 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
             ////////////
             // new_2
             pred_temp = getpointer_pred(new_node->nexts[0]->preds[0]);
-            CAS_pred(&pred_temp, &pred_temp, new_node);
+            CAS_pred(&new_node->nexts[0]->preds[0], &pred_temp, new_node);
+            // while(!CAS_pred(&new_node->nexts[0]->preds[0], &pred_temp, new_node)){
+            //     if(new_node->nexts[0]->preds[0] != pred_temp){
+            //         break;
+            //     }
+            //     pred_temp = getpointer_pred(new_node->nexts[0]->preds[0]);
+            // }
             ////////////
 
             for(int l = 1; l<=level; l++){
@@ -209,8 +220,6 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
                 pred = preds[l];
                 succ = getpointer_pred(succs[l]);
 
-                new_node->preds[l] = pred;
-
                 while(!CAS_pred(&pred->nexts[l], &succ, new_node)){
                     INC(slist->fail);
                     if(ismarked_pred(pred->nexts[0])){
@@ -219,7 +228,8 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
                         // find_skip_list_lfree_pred(slist, key, preds, succs);
                         ////////////
                         // new_2
-                        find_skip_list_lfree_pred(slist, key, preds, succs, pred->preds);
+                        preds_temp = new_node->preds;
+                        find_skip_list_lfree_pred(slist, key, preds, succs, preds_temp);
                         ////////////
                         goto restart_2;
                     }
@@ -237,7 +247,13 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
                 ////////////
                 // new_2
                 pred_temp = getpointer_pred(new_node->nexts[l]->preds[l]);
-                CAS_pred(&pred_temp, &pred_temp, new_node);
+                CAS_pred(&new_node->nexts[l]->preds[l], &pred_temp, new_node);
+                // while(!CAS_pred(&new_node->nexts[l]->preds[l], &pred_temp, new_node)){
+                //     if(new_node->nexts[l]->preds[l] != pred_temp){
+                //         break;
+                //     }
+                //     pred_temp = getpointer_pred(new_node->nexts[l]->preds[l]);
+                // }
                 ////////////
             }
             return true;
@@ -257,7 +273,6 @@ bool remove_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key) {
     ////////////
     // new_2
     Node_lfree_pred* pred_temp;
-    Node_lfree_pred* marked_pred_temp;
     ////////////
 
     while (true) {
@@ -285,15 +300,14 @@ bool remove_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key) {
                 // old_2
                 ////////////
                 // new_2
-                pred_temp = succ->preds[l];
-                marked_pred_temp = setmark_pred(succ->preds[l]);
-                while(succ->preds[l] == rem_node){
-                    if(CAS_pred(&succ->preds[l], &pred_temp, marked_pred_temp)){
-                        break;
-                    }
-                    pred_temp = succ->preds[l];
-                    marked_pred_temp = setmark_pred(succ->preds[l]);
-                }
+                pred_temp = getpointer_pred(succ->preds[l]);
+                CAS_pred(&succ->preds[l], &pred_temp, preds[l]);
+                // while(!CAS_pred(&succ->preds[l], &pred_temp, preds[l])){
+                //     if(succ->preds[l] != pred_temp){
+                //         break;
+                //     }
+                //     pred_temp = getpointer_pred(succ->preds[l]);
+                // }
                 ////////////
             }
 
@@ -311,15 +325,11 @@ bool remove_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key) {
                     // find_skip_list_lfree_pred(slist, key, preds, succs); // cleanup
                     ////////////
                     // new_2
-                    pred_temp = succ->preds[0];
-                    marked_pred_temp = setmark_pred(succ->preds[0]);
-                    while(succ->preds[0] == rem_node){
-                        if(CAS_pred(&succ->preds[0], &pred_temp, marked_pred_temp)){
-                            break;
-                        }
-                        pred_temp = succ->preds[0];
-                        marked_pred_temp = setmark_pred(succ->preds[0]);
-                    }
+                    pred_temp = getpointer_pred(succ->preds[0]);
+                    CAS_pred(&succ->preds[0], &pred_temp, preds[0]);
+                    // while(!CAS_pred(&succ->preds[0], &pred_temp, preds[0])){
+                    //     pred_temp = getpointer_pred(succ->preds[0]);
+                    // }
                     find_skip_list_lfree_pred(slist, key, preds, succs, NULL); // cleanup
                     ////////////
                     
@@ -390,7 +400,7 @@ int find_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, Node_lfree_p
             // new_2
             if(preds_temp){
                 pred_temp = preds_temp[l];
-                while(ismarked_pred(pred_temp) && ismarked_pred(getpointer_pred(pred_temp)->nexts[l])){
+                while(ismarked_pred(getpointer_pred(pred_temp)->nexts[l])){
                     pred_temp = getpointer_pred(pred_temp);
                     pred_temp = pred_temp->preds[l];
                 }
@@ -419,9 +429,15 @@ int find_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, Node_lfree_p
                     ////////////
                     // new_2
                     else{
-                        if(succ->preds[l] != pred){
-                            pred_temp = getpointer_pred(succ->preds[l]);
-                            CAS_pred(&pred_temp, &pred_temp, pred);
+                        if(pred->nexts[l]->preds[l] != pred){
+                            pred_temp = getpointer_pred(pred->nexts[l]->preds[l]);
+                            CAS_pred(&pred->nexts[l]->preds[l], &pred_temp, pred);
+                            // while(!CAS_pred(&pred->nexts[l]->preds[l], &pred_temp, pred)){
+                            //     if(pred->nexts[l]->preds[l] != pred_temp){
+                            //         break;
+                            //     }
+                            //     pred_temp = getpointer_pred(pred->nexts[l]->preds[l]);
+                            // }
                         }
                     }
                     ////////////

@@ -377,7 +377,7 @@ void test_lockfree_improved_1(){
     double seq_exec_time;
     double par_exec_time;
 
-    for(int t = 16; t <= 16; t*=2 /* size *= 10 */ ){
+    for(int t = 2; t <= 16; t*=2 /* size *= 10 */ ){
         
         Skip_list_seq slist_seq;
         Skip_list_lfree_improved slist_lfree_improved;
@@ -519,7 +519,7 @@ void test_lockfree_improved_1(){
 
 void test_lockfree_pred_1(){
     int size = 10000;
-    int max_level = 3;
+    int max_level = 0;
     double tic, toc;
     double seq_exec_time;
     double par_exec_time;
@@ -551,6 +551,7 @@ void test_lockfree_pred_1(){
             toc = omp_get_wtime();
         }
         seq_exec_time = toc-tic;
+
 
         #pragma omp parallel num_threads(t)
         {
