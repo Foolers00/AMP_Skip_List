@@ -11,7 +11,7 @@ BUILD_DIR = build
 DATA_DIR = data
 INCLUDES = inc
 
-OBJECTS = $(NAME).o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o
+OBJECTS = $(NAME).o skip_list_seq.o skip_list_lock.o skip_list_lockf.o test.o skip_list_lockf_improved.o skip_list_lockf_pred.o
 
 
 all: $(BUILD_DIR) $(NAME) $(NAME).so
