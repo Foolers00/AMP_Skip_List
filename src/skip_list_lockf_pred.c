@@ -15,7 +15,7 @@ bool init_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int max_level, int n
     init_random_lfree_pred(slist, num_of_threads);
 
     if(!init_node_lfree_pred(&header, INT_MIN, 0,
-                    max_level, NULL)){ return false; }
+                    max_level, header)){ return false; }
 
     if(!init_node_lfree_pred(&tail, INT_MAX, 0,
                     max_level, header)){ return false; }
@@ -171,6 +171,7 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
             pred = preds[0];
             succ = getpointer_pred(succs[0]);
 
+            new_node->preds[0] = pred;
 
             while(!CAS_pred(&pred->nexts[0], &succ, new_node)){
                 INC(slist->fail);
@@ -207,6 +208,8 @@ bool add_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, int value){
 
                 pred = preds[l];
                 succ = getpointer_pred(succs[l]);
+
+                new_node->preds[l] = pred;
 
                 while(!CAS_pred(&pred->nexts[l], &succ, new_node)){
                     INC(slist->fail);
@@ -387,7 +390,7 @@ int find_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key, Node_lfree_p
             // new_2
             if(preds_temp){
                 pred_temp = preds_temp[l];
-                while(ismarked_pred(pred_temp)){
+                while(ismarked_pred(pred_temp) && ismarked_pred(getpointer_pred(pred_temp)->nexts[l])){
                     pred_temp = getpointer_pred(pred_temp);
                     pred_temp = pred_temp->preds[l];
                 }

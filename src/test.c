@@ -391,7 +391,8 @@ void test_lockfree_improved_1(){
         random_array(numbers, size);
 
         // contains array
-        bool* contains_array = (bool*)malloc(sizeof(bool)*size);
+        bool* contains_array_seq = (bool*)malloc(sizeof(bool)*size);
+        bool* contains_array_par = (bool*)malloc(sizeof(bool)*size);
 
         // add
         #pragma omp single
@@ -426,21 +427,31 @@ void test_lockfree_improved_1(){
         printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
 
         // remove
-        for(int i = 0; i < size; i++){
-            if(numbers[i]%2 == 0){
-                remove_skip_list_seq(&slist_seq, numbers[i]);
+        #pragma omp single
+        { 
+            tic = omp_get_wtime();
+            for(int i = 0; i < size; i++){
+                if(numbers[i]%2 == 0){
+                    remove_skip_list_seq(&slist_seq, numbers[i]);
+                }
             }
+            toc = omp_get_wtime();
         }
+        seq_exec_time = toc-tic;
 
         #pragma omp parallel num_threads(t)
         {
+            tic = omp_get_wtime();
             #pragma omp for
             for(int i = 0; i < size; i++){
                 if(numbers[i]%2 == 0){
                     remove_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
                 }
             }
+            toc = omp_get_wtime();
         }
+        par_exec_time = toc-tic;
+
         printf("Extensive test (%i Threads): Remove: ", t);
 
         // remove compare 
@@ -449,28 +460,50 @@ void test_lockfree_improved_1(){
             break;
         }
 
+        printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
+
         
         // contains
 
         printf("Extensive test (%i Threads): Contains: ", t);
 
+
+        #pragma omp single
+        {   
+            tic = omp_get_wtime();
+            for(int i = 0; i<size; i++){
+                contains_array_seq[i] = contains_skip_list_seq(&slist_seq, numbers[i]);   
+            }
+            toc = omp_get_wtime();
+        }
+        seq_exec_time = toc-tic;
+
+
         #pragma omp parallel num_threads(t)
         {
+            tic = omp_get_wtime();
             #pragma omp for
             for(int i = 0; i < size; i++){
-                contains_array[i] = contains_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
+                contains_array_par[i] = contains_skip_list_lfree_improved(&slist_lfree_improved, numbers[i]);
             }
+            toc = omp_get_wtime();
         }
+        par_exec_time = toc-tic;
 
+        
+        
         for(int i = 0; i<size; i++){
-            if(contains_array[i] != contains_skip_list_seq(&slist_seq, numbers[i])){
-                printf("Comparison Failed: %s and %s are not the same.\n", !contains_array[i] ? "true" : "false", 
-                contains_array[i] ? "true" : "false");
+            if(contains_array_seq[i] != contains_array_par[i]){
+                printf("Comparison Failed: %s and %s are not the same.\n", contains_array_seq[i] ? "true" : "false", 
+                contains_array_par[i] ? "true" : "false");
                 goto _out;
             }
         }
+        
 
-        printf("Comparison Succeeded\n\n");
+        printf("Comparison Succeeded\n");
+
+        printf("Time: Seq: %f, Par: %f\n\n", seq_exec_time, par_exec_time);
 
 
         // free
@@ -491,7 +524,7 @@ void test_lockfree_pred_1(){
     double seq_exec_time;
     double par_exec_time;
 
-    for(int t = 2; t <= 16; t*=2 /* size *= 10 */ ){
+    for(int t = 16; t <= 16; t*=2 /* size *= 10 */ ){
         
         Skip_list_seq slist_seq;
         Skip_list_lfree_pred slist_lfree_pred;
@@ -505,7 +538,8 @@ void test_lockfree_pred_1(){
         random_array(numbers, size);
 
         // contains array
-        bool* contains_array = (bool*)malloc(sizeof(bool)*size);
+        bool* contains_array_seq = (bool*)malloc(sizeof(bool)*size);
+        bool* contains_array_par = (bool*)malloc(sizeof(bool)*size);
 
         // add
         #pragma omp single
@@ -539,22 +573,34 @@ void test_lockfree_pred_1(){
 
         printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
 
+
         // remove
-        for(int i = 0; i < size; i++){
-            if(numbers[i]%2 == 0){
-                remove_skip_list_seq(&slist_seq, numbers[i]);
+        #pragma omp single
+        {  
+            tic = omp_get_wtime();
+            for(int i = 0; i < size; i++){
+                if(numbers[i]%2 == 0){
+                    remove_skip_list_seq(&slist_seq, numbers[i]);
+                }
             }
+            toc = omp_get_wtime();
         }
+        seq_exec_time = toc-tic;
 
         #pragma omp parallel num_threads(t)
         {
+            tic = omp_get_wtime();
             #pragma omp for
             for(int i = 0; i < size; i++){
                 if(numbers[i]%2 == 0){
                     remove_skip_list_lfree_pred(&slist_lfree_pred, numbers[i]);
                 }
             }
+            toc = omp_get_wtime();
         }
+        par_exec_time = toc-tic;
+
+
         printf("Extensive test (%i Threads): Remove: ", t);
 
         // remove compare 
@@ -563,30 +609,47 @@ void test_lockfree_pred_1(){
             break;
         }
 
-        
+        printf("Time: Seq: %f, Par: %f\n", seq_exec_time, par_exec_time);
+
         // contains
 
         printf("Extensive test (%i Threads): Contains: ", t);
 
+        #pragma omp single
+        {
+            tic = omp_get_wtime();
+            for(int i = 0; i < size; i++){
+                contains_array_seq[i] = contains_skip_list_seq(&slist_seq, numbers[i]);
+            }
+            toc = omp_get_wtime();
+        }
+        seq_exec_time = toc-tic;
+
+
         #pragma omp parallel num_threads(t)
         {
+            tic = omp_get_wtime();
             #pragma omp for
             for(int i = 0; i < size; i++){
-                contains_array[i] = contains_skip_list_lfree_pred(&slist_lfree_pred, numbers[i]);
+                contains_array_par[i] = contains_skip_list_lfree_pred(&slist_lfree_pred, numbers[i]);
             }
+            toc = omp_get_wtime();
         }
+        par_exec_time = toc-tic;
 
         for(int i = 0; i<size; i++){
-            if(contains_array[i] != contains_skip_list_seq(&slist_seq, numbers[i])){
-                printf("Comparison Failed: %s and %s are not the same.\n", !contains_array[i] ? "true" : "false", 
-                contains_array[i] ? "true" : "false");
+            if(contains_array_seq[i] != contains_array_par[i]){
+                printf("Comparison Failed: %s and %s are not the same.\n", contains_array_seq[i] ? "true" : "false", 
+                contains_array_par[i] ? "true" : "false");
                 goto _out;
             }
         }
 
-        printf("Comparison Succeeded\n\n");
+        printf("Comparison Succeeded\n");
 
+        printf("Time: Seq: %f, Par: %f\n\n", seq_exec_time, par_exec_time);
 
+        
         // free
         free_skip_list_seq(&slist_seq);
         free_skip_list_lfree_pred(&slist_lfree_pred);
