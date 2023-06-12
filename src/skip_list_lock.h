@@ -71,7 +71,6 @@ typedef struct Skip_list_l{
     //trav: same as cons in seq skiplist
     //fail: not useful for lock skiplist
     unsigned long long adds, rems, cons, trav, fail, rtry;
-    unsigned long long adds, rems, cons, trav, fail, rtry;
     #endif
 }Skip_list_l;
 
