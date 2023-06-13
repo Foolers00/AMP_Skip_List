@@ -51,22 +51,22 @@ levels-plot:
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_levels_plot.tex}" > /dev/null'
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_improved_levels_plot.tex}" > /dev/null'
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_pred_levels_plot.tex}" > /dev/null'
-	@echo "============================================"
-	@echo "Created plots/seq_levels_plot.pdf"
-	@echo "Created plots/lock_levels_plot.pdf"
-	@echo "Created plots/lfree_levels_plot.pdf"
 
 throughput-plot:
 	@echo "Plotting small-bench (throughput) results ..."
-	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{throughput_plot.tex}"'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{throughput_plot.tex}" > /dev/null'
+
+throughput-percent-plot:
+	@echo "Plotting small-bench (throughput percent) results ..."
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{throughput_percent_plot.tex}" > /dev/null'
+
+small-plot: throughput-plot throughput-percent-plot levels-plot
 	@echo "============================================"
 	@echo "Created plots/throughput_plot.pdf"
-
-small-plot: 
-	@echo "Plotting small-bench results ..."
-	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{avg_plot.tex}"'
-	@echo "============================================"
-	@echo "Created plots/avgplot.pdf"
+	@echo "Created plots/throughput_percent_plot.pdf"
+	@echo "Created plots/seq_levels_plot.pdf"
+	@echo "Created plots/lock_levels_plot.pdf"
+	@echo "Created plots/lfree_levels_plot.pdf"
 
 report: small-plot
 	@echo "Compiling report ..."

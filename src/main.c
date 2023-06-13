@@ -29,7 +29,7 @@ typedef struct bench_result {
     // struct counters reduced_counters;
 } bench_result;
 
-bench_result small_bench(int t, int times, int max_level);
+bench_result small_bench(int t, int times, int max_level, int percent_adds, int percent_rems);
 
 
 int main(){
@@ -152,7 +152,8 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         operations[i] %= 100;
     }
 
-    printf("=====Running random throughput benchmark with %d threads and %d levels=====\n", t, max_level);
+    printf("=====Random mix throughput benchmark with: %d threads,%d levels,%d%% adds,%d%% rems=====\n", 
+        t, max_level, percent_adds, percent_rems);
     printf("Type \t\tTime (ms) \tTotal ops \tThroughput (Kops/s)\n");
 
     double tic, toc;
@@ -545,7 +546,7 @@ bench_result benchmark_separate(int times, int max_level, int t) {
     return result;
 }
 
-bench_result small_bench(int t, int times, int max_level) {
+bench_result small_bench(int t, int times, int max_level, int percent_adds, int percent_rems) {
     bench_result br = 
         {.time_seq=0, .time_l=0, .time_lfree=0, .time_lfree_improved=0, .time_lfree_pred=0, 
         .throughput_seq=0, .throughput_l=0, .throughput_lfree=0, .throughput_lfree_improved=0, .throughput_lfree_pred=0};
@@ -556,7 +557,7 @@ bench_result small_bench(int t, int times, int max_level) {
     omp_set_num_threads(t);
 
     // br = benchmark_separate(times, max_level, t);
-    br = benchmark_random(times, 25, 25, max_level, t);
+    br = benchmark_random(times, percent_adds, percent_rems, max_level, t);
     
     return br;
 }
