@@ -5,14 +5,16 @@
 
 \begin{document}
   \begin{tikzpicture}
-    \begin{axis}[title={Throughput: size 10000},              % Title of the graph
+    \begin{semilogxaxis}[title={Throughput: size 10000},              % Title of the graph
                  xtick={1,2,4,8,16,32,64,128,256},  % The ticks on the x-axis
                  xlabel={number of threads},        % Label of the x-axis
                  ylabel={Kops/s},             % Label of the y-axis
                  legend style={
                    at={(1.05,0.95)},                % Position of the legend anchor
                    anchor=north west                % The legend anchor
-                 }]
+                 },
+                 log basis x={2},
+                 log ticks with fixed point,]
 
       % Each graph is added via \addplot and a .data file, and
       % add a legend entry for the previous graph.
@@ -25,6 +27,6 @@
       \addplot table {\DATAPATH/throughput/smallbench_10000_3_lfree_improved.data};
       \addlegendentry{$10^4$ imp. lock free}
 
-    \end{axis}
+    \end{semilogxaxis}
   \end{tikzpicture}
 \end{document}

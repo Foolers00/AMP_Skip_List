@@ -46,12 +46,18 @@ small-bench: $(BUILD_DIR) $(NAME).so $(DATA_DIR)
 
 levels-plot:
 	@echo "Plotting small-bench (levels) results ..."
-	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lock_levels_plot.tex}"'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{seq_levels_plot.tex}" > /dev/null'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lock_levels_plot.tex}" > /dev/null'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_levels_plot.tex}" > /dev/null'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_improved_levels_plot.tex}" > /dev/null'
+	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{lfree_pred_levels_plot.tex}" > /dev/null'
 	@echo "============================================"
+	@echo "Created plots/seq_levels_plot.pdf"
 	@echo "Created plots/lock_levels_plot.pdf"
+	@echo "Created plots/lfree_levels_plot.pdf"
 
 throughput-plot:
-	@echo "Plotting small-bench (levels) results ..."
+	@echo "Plotting small-bench (throughput) results ..."
 	bash -c 'cd plots && pdflatex "\newcommand{\DATAPATH}{../data/$$(ls ../data/ | sort -r | head -n 1)}\input{throughput_plot.tex}"'
 	@echo "============================================"
 	@echo "Created plots/throughput_plot.pdf"
