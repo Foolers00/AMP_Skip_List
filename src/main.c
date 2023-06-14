@@ -197,7 +197,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     tops = 0;
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
-    #pragma omp parallel num_threads(t)
+    #pragma omp parallel num_threads(t) reduction(+:tops)
     {
         int ops = 0;
 
@@ -241,7 +241,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
 
-    #pragma omp parallel num_threads(t)
+    #pragma omp parallel num_threads(t) reduction(+:tops)
     {
         int ops = 0;
 
@@ -285,7 +285,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
 
-    #pragma omp parallel num_threads(t)
+    #pragma omp parallel num_threads(t) reduction(+:tops)
     {
         int ops = 0;
 
@@ -329,7 +329,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
 
 
-    #pragma omp parallel num_threads(t)
+    #pragma omp parallel num_threads(t) reduction(+:tops)
     {
         int ops = 0;
 
