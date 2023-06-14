@@ -48,7 +48,7 @@
 #endif
 
 #define FRACTION (1.0/2.0)
-#define COUNTERS
+// #define COUNTERS
 
 
 

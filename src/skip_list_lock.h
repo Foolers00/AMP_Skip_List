@@ -42,7 +42,7 @@
 #include "skip_list_seq.h"
 #endif
 
-#define COUNTERS
+// #define COUNTERS
 
 
 #define FRACTION (1.0/2.0)

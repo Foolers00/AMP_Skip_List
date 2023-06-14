@@ -48,7 +48,7 @@
 #endif
 
 #define FRACTION (1.0/2.0)
-#define COUNTERS
+// #define COUNTERS
 
 typedef struct Node_lfree_improved{
     struct Node_lfree_improved** nexts;

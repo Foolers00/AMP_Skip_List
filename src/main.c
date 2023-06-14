@@ -3,17 +3,17 @@
 #include "test.h"
 #endif
 
+#undef COUNTERS
+// #define COUNTERS
 // #define VERBOSE
-// #undef COUNTERS
 
-#ifdef COUNTERS
-#define INC(_c) ((_c)++)
-#else
-#ifdef INC
+// #ifdef COUNTERS
 #undef INC
-#endif
-#define INC(_c)
-#endif
+#define INC(_c) ((_c)++)
+// #else
+// #undef INC
+// #define INC(_c)
+// #endif
 
 typedef struct bench_result {
     double time_seq;
@@ -109,11 +109,12 @@ void bench_lfree_add(Skip_list_lfree *slist, int numbers[], int num_len, int num
     }
 }
 
-bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_level, int t) {    // TODO: add perfomance counters (implementation missing)
+bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int max_level, int t) {
     bench_result result;
     int i;
     double exec_time;
     unsigned long long tops = 0;
+    int keyrange = 10*n_ops;        // limit keys to 10 times the number of operations
 
     #ifdef COUNTERS
     unsigned long long adds, rems, cons, trav, fail, rtry;
@@ -142,7 +143,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     int *numbers = (int*)malloc(sizeof(int)*n_ops);
     random_array(numbers, n_ops);
     for (i = 0; i < n_ops; i++) {
-        numbers[i] %= 10*n_ops;         // limit keys to 10 times the number of operations
+        numbers[i] %= keyrange;         // limit keys
     }
 
     // precompute operations as percentage 0-100
@@ -150,6 +151,17 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     random_array(operations, n_ops);
     for (i = 0; i < n_ops; i++) {
         operations[i] %= 100;
+    }
+
+    // prefill lists with some elements
+    int rand_key;
+    for (i = 0; i < n_ops/10; i++) {
+        rand_key = rand() % keyrange;
+        add_skip_list_seq(&slist_seq, rand_key, rand_key);
+        add_skip_list_l(&slist_l, rand_key, rand_key);
+        add_skip_list_lfree(&slist_lfree, rand_key, rand_key);
+        add_skip_list_lfree_improved(&slist_lfree_improved, rand_key, rand_key);
+        add_skip_list_lfree_pred(&slist_lfree_pred, rand_key, rand_key);
     }
 
     printf("=====Random mix throughput benchmark with: %d threads,%d levels,%d%% adds,%d%% rems=====\n", 
@@ -195,7 +207,9 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         adds, rems, cons, trav, fail, rtry);
     #endif
     tops = 0;
+    #ifdef COUNTERS
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+    #endif
 
     #pragma omp parallel num_threads(t) reduction(+:tops)
     {
@@ -238,7 +252,9 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         adds, rems, cons, trav, fail, rtry);
     #endif
     tops = 0;
+    #ifdef COUNTERS
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+    #endif
 
 
     #pragma omp parallel num_threads(t) reduction(+:tops)
@@ -282,7 +298,9 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         adds, rems, cons, trav, fail, rtry);
     #endif
     tops = 0;
+    #ifdef COUNTERS
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+    #endif
 
 
     #pragma omp parallel num_threads(t) reduction(+:tops)
@@ -326,7 +344,9 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         adds, rems, cons, trav, fail, rtry);
     #endif
     tops = 0;
+    #ifdef COUNTERS
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+    #endif
 
 
     #pragma omp parallel num_threads(t) reduction(+:tops)
@@ -370,7 +390,9 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
         adds, rems, cons, trav, fail, rtry);
     #endif
     tops = 0;
+    #ifdef COUNTERS
     adds = 0; rems = 0; cons = 0; trav = 0; fail = 0; rtry = 0;
+    #endif
 
     free(numbers);
     return result;
@@ -535,7 +557,6 @@ bench_result benchmark_separate(int times, int max_level, int t) {
     }
     toc = omp_get_wtime();
     printf("Checking %d nodes for contains in lock free skip list (%d levels) with %d threads took: %fs\n", times, max_level, t, toc - tic);
-    printf("[COUNTERS] nodes checked for contains: %lld\n", (&slist_lfree)->cons);
 
     free_skip_list_lfree(&slist_lfree);
     result.time_lfree = (toc - tic);

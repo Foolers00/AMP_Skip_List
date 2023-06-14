@@ -33,7 +33,7 @@
 #include <string.h>
 #endif
 
-#define COUNTERS
+// #define COUNTERS
 
 #ifdef COUNTERS
 #define INC(_c) ((_c)++)
