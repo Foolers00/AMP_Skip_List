@@ -292,7 +292,11 @@ bool remove_skip_list_lfree_pred(Skip_list_lfree_pred* slist, int key) {
                 succ = getpointer_pred(rem_node->nexts[l]);
                 while (!marked) {
                     markedsucc = setmark_pred(succ);
+                    #ifdef COUNTERS
                     if (!CAS_pred(&rem_node->nexts[l], &succ, markedsucc)) INC(slist->fail);
+                    #else
+                    CAS_pred(&rem_node->nexts[l], &succ, markedsucc);
+                    #endif
                     marked = ismarked_pred(rem_node->nexts[l]);
                     succ = getpointer_pred(rem_node->nexts[l]);
                 }

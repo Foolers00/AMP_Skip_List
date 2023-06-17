@@ -236,7 +236,11 @@ bool remove_skip_list_lfree_improved(Skip_list_lfree_improved* slist, int key) {
                 succ = getpointer_improved(rem_node->nexts[l]);
                 while (!marked) {
                     markedsucc = setmark_improved(succ);
+                    #ifdef COUNTERS
                     if (!CAS_improved(&rem_node->nexts[l], &succ, markedsucc)) INC(slist->fail);
+                    #else
+                    CAS_improved(&rem_node->nexts[l], &succ, markedsucc);
+                    #endif
                     marked = ismarked_improved(rem_node->nexts[l]);
                     succ = getpointer_improved(rem_node->nexts[l]);
                 }

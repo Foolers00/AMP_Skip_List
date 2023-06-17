@@ -178,7 +178,11 @@ bool remove_skip_list_lfree(Skip_list_lfree* slist, int key) {
                 succ = getpointer(rem_node->nexts[l]);
                 while (!marked) {
                     markedsucc = setmark(succ);
+                    #ifdef COUNTERS
                     if (!CAS(&rem_node->nexts[l], &succ, markedsucc)) INC(slist->fail);
+                    #else
+                    CAS(&rem_node->nexts[l], &succ, markedsucc);
+                    #endif
                     marked = ismarked(rem_node->nexts[l]);
                     succ = getpointer(rem_node->nexts[l]);
                 }
