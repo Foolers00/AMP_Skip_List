@@ -395,6 +395,7 @@ bench_result benchmark_random(int n_ops, int percent_adds, int percent_rems, int
     #endif
 
     free(numbers);
+    free(operations);
     return result;
 }
 

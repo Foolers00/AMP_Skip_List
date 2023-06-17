@@ -1,3 +1,5 @@
+\def\ops{16000}
+
 \documentclass{standalone}
 
 \usepackage{pgfplots}
@@ -5,7 +7,7 @@
 
 \begin{document}
   \begin{tikzpicture}
-    \begin{semilogxaxis}[title={Throughput for different max levels: lock free improved, size 10000},              % Title of the graph
+    \begin{semilogxaxis}[title={Throughput for different max levels: lock free improved, size \ops},              % Title of the graph
                  xtick={1,2,4,8,16,32,64,128,256},  % The ticks on the x-axis
                  xlabel={number of threads},        % Label of the x-axis
                  ylabel={Kops/s},             % Label of the y-axis
@@ -18,11 +20,11 @@
 
       % Each graph is added via \addplot and a .data file, and
       % add a legend entry for the previous graph.
-      \addplot table {\DATAPATH/throughput/smallbench_10000_3_lfree_improved.data};
+      \addplot table {\DATAPATH/throughput/smallbench_\ops_3_lfree_improved.data};
       \addlegendentry{3 levels}
-      \addplot table {\DATAPATH/throughput/smallbench_10000_5_lfree_improved.data};
+      \addplot table {\DATAPATH/throughput/smallbench_\ops_5_lfree_improved.data};
       \addlegendentry{5 levels}
-      \addplot table {\DATAPATH/throughput/smallbench_10000_10_lfree_improved.data};
+      \addplot table {\DATAPATH/throughput/smallbench_\ops_10_lfree_improved.data};
       \addlegendentry{10 levels}
 
     \end{semilogxaxis}
