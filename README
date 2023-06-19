@@ -1,17 +1,27 @@
+Build project
+-------------------------------
+  `make all`
+
+Builds the project and creates the shared library to be called from the python script.
+
 Skip List: sequential, lock and lock free
 -------------------------------
 
-This example benchmarks the skip list versions.
+This example benchmarks the skip list implementations with different configurations.
 
-  make small-bench
+  `make small-bench`
 
 Runs a small benchmark that takes approximately 1 minute to finish. The
 results are stored time-stamped in data/.
 
-  make small-plot
+  `make small-plot`
 
 Produces seven plots of the small benchmark data. It automatically chooses
 the latest timestamped run in data/.
+
+  `make report`
+
+Produces the report for the project.
 
 Prerequisites
 -----------------------------
