@@ -75,7 +75,7 @@ report: small-plot
 	@echo "Done"
 
 zip:
-	@zip skiplist_project.zip benchmark.py Makefile README src/* plots/*.tex report/report.tex report/plots_for_report/*
+	@zip skiplist_project.zip benchmark.py Makefile README src/* plots/*.tex report/report.pdf report/report.tex report/plots_for_report/*
 
 clean:
 	@echo "Cleaning build directory: $(BUILD_DIR) and binaries: $(NAME) $(NAME).so"
