@@ -101,3 +101,6 @@ report.pdf
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+
+# zipped project
+skiplist_project.zip

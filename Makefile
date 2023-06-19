@@ -70,12 +70,12 @@ small-plot: throughput-plot throughput-percent-plot levels-plot
 
 report: small-plot
 	@echo "Compiling report ..."
-	bash -c 'cd report && pdflatex report.tex'
+	bash -c 'cd report; pdflatex report.tex; biblatex report; pdflatex report.tex; pdflatex report.tex'
 	@echo "============================================"
 	@echo "Done"
 
 zip:
-	@zip framework.zip benchmark.py Makefile README src/* plots/avg_plot.tex report/report.tex
+	@zip skiplist_project.zip benchmark.py Makefile README src/* plots/*.tex report/report.tex report/plots_for_report/*
 
 clean:
 	@echo "Cleaning build directory: $(BUILD_DIR) and binaries: $(NAME) $(NAME).so"

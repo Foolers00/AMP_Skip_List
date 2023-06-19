@@ -1,7 +1,7 @@
-Skip List sequential, lock and lock free
+Skip List: sequential, lock and lock free
 -------------------------------
 
-This example benchmarks Skip list sequential, lock and lock free.
+This example benchmarks the skip list versions.
 
   make small-bench
 
@@ -10,7 +10,7 @@ results are stored time-stamped in data/.
 
   make small-plot
 
-Produces two plots of the small benchmark data. It automatically chooses
+Produces seven plots of the small benchmark data. It automatically chooses
 the latest timestamped run in data/.
 
 Prerequisites
@@ -21,3 +21,4 @@ What is needed:
 * C compiler
 * GNU Make
 * Python version at least 3.6
+* pdfTeX & biber for plots and report
